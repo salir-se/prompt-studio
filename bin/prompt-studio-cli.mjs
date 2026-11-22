@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+#!/usr/bin/env bun
 /**
  * Launcher for the Prompt Studio control CLI inside the `@salir-se/prompt-studio` npm package
  * (ADR-204 amendment 2026-09-15). Checked in as `.mjs` and copied verbatim to

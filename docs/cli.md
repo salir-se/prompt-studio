@@ -19,7 +19,7 @@ bun run ps -- use-config trial                       # switch the active configu
 bun run ps -- reset support-triage                   # reset the open document to its saved baseline
 ```
 
-With the npm package, use `npx @salir-se/prompt-studio-cli <command>` instead of `bun run ps --`.
+With the npm package, use `bunx @salir-se/prompt-studio-cli <command>` instead of `bun run ps --`.
 
 Global flags: `--json` (raw results), `--port N` (default `5273`), `--token T`.
 Authentication order: `--token`, then `PROMPT_STUDIO_CONTROL_TOKEN`, then the per-launch token file

@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+#!/usr/bin/env bun
 /**
  * Launcher for the Prompt Studio server inside the `@salir-se/prompt-studio` npm package
  * (ADR-204 amendment 2026-09-15). Checked in as `.mjs` and copied verbatim to
@@ -33,7 +33,7 @@ STUDIO_ALLOWED_ORIGINS, STUDIO_MANIFEST_PATH, ZAI_API_KEY (optional /verify
 review), STUDIO_VERIFY_BUDGET, STUDIO_CONTROL_TOKEN. Explicit environment
 always wins over the flags' defaults above.
 
-Once it is up: npx @salir-se/prompt-studio-cli open`;
+Once it is up: bunx @salir-se/prompt-studio-cli open`;
 
 function parseFlags(argv) {
   const flags = {};
@@ -92,7 +92,7 @@ const portNumber = Number.parseInt(rawPort, 10);
 const originPort = Number.isInteger(portNumber) && portNumber >= 1 && portNumber <= 65535 ? portNumber : 5273;
 const repoRoot = flags.repo ?? process.cwd();
 
-console.log('Salir Prompt Studio (npm package — private; ADR-204)');
+console.log('Salir Prompt Studio (npm package; ADR-204)');
 console.log(`  repo root : ${repoRoot}`);
 console.log(`  bind      : ${flags.host ?? process.env.STUDIO_HOST ?? '127.0.0.1'}:${rawPort}`);
 

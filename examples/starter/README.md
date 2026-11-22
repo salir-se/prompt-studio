@@ -3,7 +3,7 @@
 An example project for Prompt Studio. Open this folder in Prompt Studio to try it:
 
 ```bash
-npx @salir-se/prompt-studio --repo examples/starter
+bunx @salir-se/prompt-studio --repo examples/starter
 ```
 
 - `prompts/support-triage.md` — a sectioned prompt with placeholders and a JSON output contract.

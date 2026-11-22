@@ -1,15 +1,15 @@
 #!/usr/bin/env bun
 /**
- * Smoke-boots the packed `@salir-se/prompt-studio` npm tarball under PLAIN NODE before the
+ * Smoke-boots the packed `@salir-se/prompt-studio` npm tarball under Bun before the
  * publish workflow lets it near the registry (ADR-204 amendment 2026-09-15).
  *
- * The publish workflow runs this between `npm pack` and `npm publish`. The Dockerfile history
+ * The publish workflow runs this between `bun pm pack` and `bun publish`. The Dockerfile history
  * (infra/docker/prompt-studio.Dockerfile's boot-crash war stories) is exactly why: a package
  * that assembles cleanly can still fail at BOOT on the first unresolved module. This script
- * asserts the properties a `bunx`/`npx` user depends on, end to end, against the real tarball:
+ * asserts the properties a `bunx` user depends on, end to end, against the real tarball:
  *
- *   1. `npm install <tarball>` succeeds into an empty prefix.
- *   2. `node bin/prompt-studio.js` (the launcher shebangs `node`) boots the bundled server.
+ *   1. `bun add <tarball>` succeeds into an empty prefix.
+ *   2. `bun bin/prompt-studio.js` (the launcher shebangs `bun`) boots the bundled server.
  *   3. `/health` answers unauthenticated; `/` serves the SPA shell with a per-boot token.
  *   4. The read-only bridge serves a repo file for the token+Origin pair (and ONLY that shape
  *      of request — the token alone is not the auth story, the Origin gate is part of it).
@@ -94,14 +94,14 @@ async function main(): Promise<void> {
   const tarball = await findTarball();
   console.log(`[npm-smoke] tarball: ${tarball}`);
 
-  const whichNode = (() => {
+  const bunVersion = (() => {
     try {
-      return execFileSync('node', ['--version'], { encoding: 'utf8' }).trim();
+      return execFileSync('bun', ['--version'], { encoding: 'utf8' }).trim();
     } catch {
-      return fail('node is not on PATH — the smoke proves the package boots under plain Node');
+      return fail('bun is not on PATH — the smoke proves the package boots under Bun');
     }
   })();
-  console.log(`[npm-smoke] node: ${whichNode}`);
+  console.log(`[npm-smoke] bun: ${bunVersion}`);
 
   const workDir = await mkdtemp(path.join(tmpdir(), 'prompt-studio-npm-smoke-'));
   const fixtureRepo = path.join(workDir, 'fixture-repo');
@@ -110,9 +110,8 @@ async function main(): Promise<void> {
 
   // 1. Install into an empty prefix.
   console.log('[npm-smoke] installing tarball...');
-  execFileSync('npm', ['install', tarball, '--prefix', workDir, '--no-audit', '--no-fund', '--loglevel=error'], {
-    stdio: 'inherit',
-  });
+  await writeFile(path.join(workDir, 'package.json'), '{"name":"smoke-consumer","private":true}\n');
+  execFileSync('bun', ['add', tarball], { cwd: workDir, stdio: 'inherit' });
   const pkgDir = path.join(workDir, 'node_modules', '@salir-se', 'prompt-studio');
   const serverBin = path.join(pkgDir, 'bin', 'prompt-studio.js');
   const cliBin = path.join(pkgDir, 'bin', 'prompt-studio-cli.js');
@@ -125,11 +124,11 @@ async function main(): Promise<void> {
     if (!existsSync(required)) fail(`installed package is missing ${path.relative(workDir, required)}`);
   }
 
-  // 2. Boot under plain Node with the launcher's npm defaults (--repo fixture, loopback bind).
+  // 2. Boot under Bun with the launcher's npm defaults (--repo fixture, loopback bind).
   const port = await freePort();
   const baseUrl = `http://127.0.0.1:${port}`;
-  console.log(`[npm-smoke] booting server under node on ${baseUrl}...`);
-  const server = spawn('node', [serverBin, '--repo', fixtureRepo, '--port', String(port)], {
+  console.log(`[npm-smoke] booting server under bun on ${baseUrl}...`);
+  const server = spawn('bun', [serverBin, '--repo', fixtureRepo, '--port', String(port)], {
     stdio: ['ignore', 'pipe', 'pipe'],
   });
   let serverOutput = '';
@@ -177,13 +176,13 @@ async function main(): Promise<void> {
     //    headlessly, the designed no-tab contract is the actionable 503 (ADR-236), so assert
     //    exactly that end to end: token-file discovery → POST → server gate → client error.
     //    A wrong --token must reach the same transport but die at the 401 gate instead.
-    const noTab = await runCapturing('node', [cliBin, '--port', String(port), 'docs', '--json']);
+    const noTab = await runCapturing('bun', [cliBin, '--port', String(port), 'docs', '--json']);
     if (noTab.exitCode !== 1 || !noTab.output.includes('No editor tab is connected')) {
       fail(
         `cli without a tab should exit 1 with the no-tab message, got ${noTab.exitCode}: ${noTab.output.slice(0, 200)}`,
       );
     }
-    const badToken = await runCapturing('node', [cliBin, '--port', String(port), '--token', 'wrong', 'docs', '--json']);
+    const badToken = await runCapturing('bun', [cliBin, '--port', String(port), '--token', 'wrong', 'docs', '--json']);
     if (badToken.exitCode !== 1 || !badToken.output.includes('Unauthorized')) {
       fail(
         `cli with a wrong token should exit 1 with Unauthorized, got ${badToken.exitCode}: ${badToken.output.slice(0, 200)}`,
@@ -212,7 +211,7 @@ async function main(): Promise<void> {
     await rm(workDir, { recursive: true, force: true });
   }
 
-  console.log('[npm-smoke] OK — the packed tarball installs, boots under plain Node, and serves');
+  console.log('[npm-smoke] OK — the packed tarball installs, boots under Bun, and serves');
 }
 
 main().catch((error: unknown) => {
