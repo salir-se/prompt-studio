@@ -101,6 +101,10 @@ Editor commands (each runs in ONE open editor tab):
   section <rootId> <sectionId>                print one section's own body
   edit-section <rootId> <sectionId> --file PATH | --stdin [-m MSG]
                                               replace one section's own body
+  design <rootId> [sectionId]                 print the design contracts of the prompt or of one section
+  patterns                                    list the workflow patterns of the Design panel
+  checks <rootId> [sectionId]                 list automatic checks and AI criteria (saved and proposed)
+  findings <rootId>                           the latest automatic and AI-review findings, current or stale
   call <command> [--params JSON]              run any command from "ps capabilities" with JSON params
 
 Flags:
@@ -184,6 +188,26 @@ export function parseArgs(argv: readonly string[]): ParsedCommand {
         ...flags2Parsed(flags),
       };
     }
+    case 'design': {
+      const args = documentArgs();
+      return {
+        command: 'getDesign',
+        args: third === undefined ? args : { ...args, sectionId: third },
+        ...flags2Parsed(flags),
+      };
+    }
+    case 'checks': {
+      const args = documentArgs();
+      return {
+        command: 'listChecks',
+        args: third === undefined ? args : { ...args, sectionId: third },
+        ...flags2Parsed(flags),
+      };
+    }
+    case 'findings':
+      return { command: 'getFindings', args: documentArgs(), ...flags2Parsed(flags) };
+    case 'patterns':
+      return { command: 'listWorkflowPatterns', args: {}, ...flags2Parsed(flags) };
     case 'call': {
       if (rootId === undefined) throw new CliUsageError('call needs a command name — run "ps capabilities".');
       let params: unknown = {};
@@ -275,6 +299,10 @@ export function formatResult(command: string, result: unknown): string {
     }
     case 'readSection':
       return (result as { body: string }).body;
+    case 'listWorkflowPatterns':
+      return (result as Array<{ id: string; name: string; description: string }>)
+        .map((pattern) => `${pattern.id.padEnd(12)}  ${pattern.name} — ${pattern.description}`)
+        .join('\n');
     case 'history': {
       const commits = result as Array<{ id: string; message: string; timestampMs: number }>;
       if (commits.length === 0) return '(no commits)';

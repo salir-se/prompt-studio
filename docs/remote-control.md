@@ -78,9 +78,15 @@ The catalog holds these commands. Every one runs in a tab, through the same func
 | Documents | `listDocuments`, `openDocument`, `readDocument`, `editDocument`, `resetDocument`, `history` |
 | Configurations | `listConfigurations`, `createConfiguration`, `switchConfiguration` |
 | Sections of the open document | `listSections`, `readSection`, `editSection` (own body only), `insertSection` (`position`: `after` or `firstChild`), `moveSection` (`direction`: `up` or `down`), `removeSection` |
+| Design of the open prompt | `getDesign`, `setDesign` (`input`, `workflow`, `output`), `verifySample` (`sample`, `contract`), `listWorkflowPatterns`, `applyWorkflowPattern` (`patternId`) |
+| Verification of the open prompt | `listChecks`, `runChecks`, `getFindings`, `proposeCheck` (`kind`: `rule` or `criterion`), `getProposalStatus` (`proposalId`) |
 
-Section commands take `rootId` (and `variantSymbol` for a variant) of the open document and a `sectionId` from
-`listSections`. Each section edit is one text change through the editor's save path: an undo point and one
+Section and design commands take `rootId` (and `variantSymbol` for a variant) of the open document and a
+`sectionId` from `listSections`; design commands without `sectionId` act on the whole prompt. `setDesign` and
+`applyWorkflowPattern` run the Design panel's Save checks and save function, then open the Design panel on the
+changed scope; a design the validator rejects fails with `invalid_input` and changes nothing. `proposeCheck` never
+saves: the proposal waits in Verify → Checks & criteria until the person accepts, edits or rejects it. No command
+starts the paid AI review. Each section edit is one text change through the editor's save path: an undo point and one
 commit, and the graph and the outline update in the tab. The gateway rejects an unknown action
 (`unsupported_command`) and invalid parameters (`invalid_input`: a missing field, a wrong type, a value outside an
 `enum`) before it routes anything to a tab. `ps capabilities` prints each command's parameter schema.

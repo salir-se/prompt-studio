@@ -2,6 +2,7 @@ import { useRef, useState } from 'react';
 import type { VerificationRunResult } from '../panels/root-verification';
 import { useSemanticReview } from '../panels/verification/use-semantic-review';
 import { WHOLE_PROMPT } from '../panels/verification/verification-editing';
+import { useCheckProposals } from '../verification/check-proposals';
 import { verificationCoverage } from '../verification/coverage';
 import { attributeVerificationToGraphModel, type DocumentEditor } from './use-document-editor';
 import type { PanelState } from './use-panel-state';
@@ -41,6 +42,7 @@ export function useVerificationWorkspace({
   if (result) history.current[owner] = result;
   const [target, setTarget] = useState<VerificationTarget>({ scope: WHOLE_PROMPT, tab: 'findings', request: 0 });
   const [runTab, setRunTab] = useState<'suites' | 'compare' | 'settings'>('suites');
+  const proposals = useCheckProposals();
   const coverage =
     root && tree
       ? verificationCoverage(root, tree, result ?? history.current[owner] ?? null, semantic.statusBySectionId)
@@ -51,13 +53,22 @@ export function useVerificationWorkspace({
     project,
     coverage,
     runTab,
+    proposals,
+    /** The latest automatic-check result: `current` matches the text and checks, `stale` is from an older run. */
+    latest: currentResult
+      ? { result: currentResult, freshness: 'current' as const }
+      : history.current[owner]
+        ? { result: history.current[owner], freshness: 'stale' as const }
+        : null,
     pending: !!workspace.pending || !!workspace.error,
     attributed: tree && result ? attributeVerificationToGraphModel(tree, result) : null,
-    open(scope = WHOLE_PROMPT, tab: VerificationTarget['tab'] = 'findings') {
+    /** Opens Verify on a scope and tab and runs the automatic checks; returns the run, or null when not opened. */
+    open(scope = WHOLE_PROMPT, tab: VerificationTarget['tab'] = 'findings'): VerificationRunResult | null {
       if (!doc || !root || !(panels.activePanel === 'verify' ? panels.confirmDiscard() : panels.openPanel('verify')))
-        return;
-      editor.runVerification();
+        return null;
+      const run = editor.runVerification();
       setTarget((previous) => ({ scope, tab, request: previous.request + 1 }));
+      return run;
     },
     toggleEvaluations() {
       if (project) panels.toggleEvaluations();

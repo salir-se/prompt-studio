@@ -1,15 +1,13 @@
-import { validateMermaidDiagram } from '@prompt-studio/prompt-graph-ui';
 import {
   type JsonValue,
   parsePromptDesign,
   type PromptDesign,
   type PromptSectionDesign,
   validatePromptDesign,
-  verifyStructuredJsonInput,
-  verifyStructuredJsonOutput,
 } from '@prompt-studio/prompts';
 import { useEffect, useState } from 'react';
 import { CloseButton } from '../components/CloseButton';
+import { designIssueMessages, designScope, verifyDesignSample, workflowProblems } from '../design/design-scope';
 import { withSectionDesign } from '../design/section-metadata';
 import { ShortcutControl } from '../shortcuts/ShortcutControl';
 import { PromptContractDetails } from './PromptContractDetails';
@@ -205,19 +203,10 @@ export function PromptDesignPanel({
   function testSample(): void {
     const current = parsed();
     if (!current) return;
-    const scope = sectionId ? current.sectionDesigns.find((section) => section.sectionId === sectionId) : current;
+    const scope = designScope(current, sectionId);
     if (!scope) return;
-    const axis =
-      scope.input.kind === 'json' && (sampleAxis === 'input' || scope.output.kind !== 'json') ? 'input' : 'output';
-    const result =
-      axis === 'input' && scope.input.kind === 'json'
-        ? verifyStructuredJsonInput(scope.input, sample)
-        : scope.output.kind === 'json'
-          ? verifyStructuredJsonOutput(scope.output, sample)
-          : scope.input.kind === 'json'
-            ? verifyStructuredJsonInput(scope.input, sample)
-            : null;
-    setVerifiedSampleAxis(result?.valid ? axis : null);
+    const result = verifyDesignSample(scope, sampleAxis, sample);
+    setVerifiedSampleAxis(result?.valid ? result.axis : null);
     setMessage(
       result
         ? result.valid
@@ -230,35 +219,16 @@ export function PromptDesignPanel({
   async function save(): Promise<void> {
     const current = parsed();
     if (!current) return;
-    const issues = validatePromptDesign(current, text);
+    const issues = designIssueMessages(current, text);
     if (issues.length > 0) {
-      setMessage(issues.map((issue) => issue.message).join('\n'));
+      setMessage(issues.join('\n'));
       return;
     }
-    const workflows = [
-      { label: 'Major workflow', diagram: current.workflow },
-      ...current.sectionDesigns.map((section) => ({
-        label: `Workflow for ${section.sectionId}`,
-        diagram: section.workflow,
-      })),
-    ].filter((workflow) => workflow.diagram.trim() !== '');
     setSaving(true);
-    const results = await Promise.all(
-      workflows.map(async (workflow) => ({
-        ...workflow,
-        result: await validateMermaidDiagram(workflow.diagram),
-      })),
-    );
-    const invalid = results.filter((workflow) => !workflow.result.valid);
+    const invalid = await workflowProblems(current);
     if (invalid.length > 0) {
       setSaving(false);
-      setMessage(
-        invalid
-          .map((workflow) =>
-            `${workflow.label} cannot render: ${workflow.result.valid ? '' : workflow.result.error}`.trim(),
-          )
-          .join('\n'),
-      );
+      setMessage(invalid.join('\n'));
       return;
     }
     try {

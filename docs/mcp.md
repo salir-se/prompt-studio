@@ -56,6 +56,38 @@ one commit, and the person sees the graph and the outline change while the agent
 Section ids come from `list_sections`. A nested section's id is its path (`tools/retry`). For an XML section, its
 tag (`output_format`) also works. An unknown id fails with `missing_target` and asks the agent to list sections.
 
+### Design contracts and workflow patterns
+
+A design records, for the whole prompt and for each section, the expected **input** (free text, or JSON with a JSON
+Schema), the **workflow** (a Mermaid flowchart) and the expected **output** (free text, a tool call, or JSON with a
+JSON Schema). Only prompts created or adopted in Prompt Studio have a design.
+
+| Tool | What it does |
+|---|---|
+| `get_design` | Returns the input contract, workflow and output contract of the whole prompt, or of one section with `sectionId`, plus the readiness issues shown in **Design**. |
+| `set_design` | Changes the input, workflow and/or output of one scope and saves a new design version. It is checked like the Design panel's **Save**: an invalid contract, an example that does not match its schema, a readiness issue or a workflow Mermaid cannot render fails with `invalid_input` and the validator's messages, and nothing is saved. The Design panel then opens on that scope. |
+| `verify_sample` | Checks a JSON sample (for example a model reply) against the scope's JSON output contract, or its input contract with `contract: "input"`. The same check as **Verify sample**. Changes nothing. |
+| `list_workflow_patterns` | Lists the pattern catalog of the Design panel's **Choose pattern** dialog: id, name, when to use it, Mermaid graph. |
+| `apply_workflow_pattern` | Sets one scope's workflow to a pattern's graph and saves the design. It records the workflow only; nothing runs. |
+
+### Verification
+
+The agent can run the automatic checks and read findings, but **only the person saves checks**. The agent
+proposes; the person decides in **Verify → Checks & criteria**. AI review is a paid model call, so only the person
+starts it in **Verify → AI review**; the agent reads its results.
+
+| Tool | What it does |
+|---|---|
+| `list_checks` | Lists the automatic checks and AI review criteria per scope (`sectionId: null` is the whole prompt), with state `saved` or `proposed` and their origin (authored, studio, derived from design, platform). |
+| `run_checks` | Runs the automatic checks (the **Verify** button) and returns the findings. Opens Verify → Findings. |
+| `get_findings` | Returns the latest automatic findings and the AI review results per scope, each with freshness: `current`, `stale` (from an older text or older checks), `none` or `not-checked`. |
+| `propose_check` | Proposes an automatic check (`kind: "rule"`, for example `{ "kind": "required-tool", "name": "lookup_order" }`) or an AI review criterion (`kind: "criterion"` with a `statement`). It is **not saved**: it appears in Checks & criteria marked **Proposed**. Returns a `proposalId` with status `proposed`. |
+| `get_proposal_status` | Returns `pending`, `accepted` (saved as proposed), `edited` (the person changed it before saving; the saved version is included) or `rejected`. |
+
+In Checks & criteria, each proposal has **Accept proposal**, **Edit proposal** (automatic checks open the check
+form; a criterion's wording is editable in place) and **Reject proposal**. Proposals live in the editor tab: a
+reload drops the undecided ones.
+
 Edits and resets apply to the **open** document, so agents call `open_document` first.
 
 Every tool except `list_targets` takes an optional `browserId`. With one tab open, leave it out. With several
@@ -109,7 +141,10 @@ claude mcp add prompt-studio -- bun /path/to/prompt-studio/packages/mcp-server/s
 
 1. In Prompt Studio, open your project and keep the tab visible next to the agent.
    The agent works in small steps: `open_document` → `list_sections` → `read_section` → `edit_section` or
-   `insert_section` → `list_sections` again to check the new structure.
+   `insert_section` → `list_sections` again to check the new structure. For contracts: `get_design` →
+   `set_design` (for example a JSON output schema) → `verify_sample` with a realistic reply →
+   `apply_workflow_pattern` for a section's workflow. For checks: `run_checks` → `list_checks` →
+   `propose_check` → ask the person to review it → `get_proposal_status`.
 2. Ask the agent: *"Use prompt-studio to create a support triage prompt with mission, categories, urgency and a
    JSON output format."* Watch the sections appear in Explorer and the graph.
 3. Review the structure in **Graph** and **Verify**. Tell the agent what to change: *"Add an urgent level for
@@ -119,7 +154,7 @@ claude mcp add prompt-studio -- bun /path/to/prompt-studio/packages/mcp-server/s
 
 ## Limits
 
-- Design contracts, verification rules and evaluations through MCP are planned; see the
+- Evaluations (test suites and runs) through MCP are planned; see the
   [roadmap issues](https://github.com/salir-se/prompt-studio/issues?q=is%3Aissue+label%3Amcp).
 - Commands relay through the open tab. With no tab open, tools answer with an error that asks you to open one.
 - If a tab disconnects or does not answer in time, the error says the command may have run; the agent should

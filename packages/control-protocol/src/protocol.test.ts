@@ -54,6 +54,16 @@ describe('validateParams', () => {
     expect(validateParams(descriptor('insertSection'), { rootId: 'r', sectionId: 's', tag: 't', body: 3 })).toBe(
       'params.body must be a string.',
     );
+    const setDesign = descriptor('setDesign');
+    expect(validateParams(setDesign, { rootId: 'r', output: { kind: 'json' } })).toBeNull();
+    expect(validateParams(setDesign, { rootId: 'r', output: '{"kind":"json"}' })).toBe(
+      'params.output must be an object.',
+    );
+    expect(validateParams(descriptor('verifySample'), { rootId: 'r' })).toBe('params.sample is required.');
+    expect(validateParams(descriptor('proposeCheck'), { rootId: 'r', kind: 'test' })).toBe(
+      'params.kind must be one of: "rule", "criterion".',
+    );
+    expect(validateParams(descriptor('getProposalStatus'), {})).toBe('params.proposalId is required.');
   });
 
   it('covers the editor and section commands, all executed in the browser at the applied level', () => {
@@ -71,9 +81,19 @@ describe('validateParams', () => {
         'insertSection',
         'moveSection',
         'removeSection',
+        'getDesign',
+        'setDesign',
+        'verifySample',
+        'listWorkflowPatterns',
+        'applyWorkflowPattern',
+        'listChecks',
+        'runChecks',
+        'getFindings',
+        'proposeCheck',
+        'getProposalStatus',
       ]),
     );
-    expect(names).toHaveLength(15);
+    expect(names).toHaveLength(25);
     for (const command of COMMAND_CATALOG) {
       expect(command).toMatchObject({
         executor: 'browser',

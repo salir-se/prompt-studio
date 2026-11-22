@@ -39,6 +39,10 @@ const documentArgs = {
 const sectionIdArg = z
   .string()
   .describe('Section id from list_sections (for example "role"). Ids can change after a section is renamed.');
+const designScopeArg = z
+  .string()
+  .optional()
+  .describe('A section id from list_sections (or its xml tag). Leave it out for the whole prompt');
 const commitMessageArg = z.string().optional().describe('Commit message shown in History');
 
 export interface ToolDefinition {
@@ -197,6 +201,128 @@ export const TOOLS: readonly ToolDefinition[] = [
       'Remove a section and its sub-sections from the open document. Saved as one commit, so the person can undo it or restore it from History.',
     inputSchema: { ...documentArgs, sectionId: sectionIdArg },
     command: 'removeSection',
+    toArgs: (input) => input,
+  },
+  {
+    name: 'get_design',
+    title: 'Get a design',
+    description:
+      'The design contracts of the OPEN prompt (whole prompt, or one section with sectionId): input contract (free-text or json with JSON Schema), Mermaid workflow, output contract (freeform, tool-call or json with JSON Schema), plus the readiness issues the person sees in Design. Call before set_design. Only prompts created or adopted in Prompt Studio have a design.',
+    inputSchema: { ...documentArgs, sectionId: designScopeArg },
+    command: 'getDesign',
+    toArgs: (input) => input,
+  },
+  {
+    name: 'set_design',
+    title: 'Set a design',
+    description:
+      "Change the input contract, workflow and/or output contract of the whole prompt or of one section, and save it as a new design version. Checked like the Design panel's Save: an invalid contract, an example that does not match its JSON Schema, a readiness issue or a workflow Mermaid cannot render fails with invalid_input and the validator's messages, and nothing is saved. The Design panel opens on the changed scope. Omitted fields stay as they are.",
+    inputSchema: {
+      ...documentArgs,
+      sectionId: designScopeArg,
+      input: z
+        .record(z.string(), z.unknown())
+        .optional()
+        .describe('{ kind: "free-text", description } or { kind: "json", description, jsonSchema, examples: [...] }'),
+      workflow: z
+        .string()
+        .optional()
+        .describe('A Mermaid flowchart, e.g. "flowchart LR\n  Message --> Lookup --> Reply"'),
+      output: z
+        .record(z.string(), z.unknown())
+        .optional()
+        .describe(
+          '{ kind: "freeform", description } | { kind: "tool-call", description, requiredToolName } | { kind: "json", description, jsonSchema, examples: [...] }',
+        ),
+    },
+    command: 'setDesign',
+    toArgs: (input) => input,
+  },
+  {
+    name: 'verify_sample',
+    title: 'Verify a JSON sample',
+    description:
+      'Check a JSON sample (for example a model reply) against the scope\'s JSON output contract, or its input contract with contract "input" — the Design panel\'s Verify sample. Returns valid and the schema errors. Changes nothing.',
+    inputSchema: {
+      ...documentArgs,
+      sectionId: designScopeArg,
+      sample: z.string().describe('The JSON text to check'),
+      contract: z.enum(['output', 'input']).optional().describe('Default: output'),
+    },
+    command: 'verifySample',
+    toArgs: (input) => input,
+  },
+  {
+    name: 'list_workflow_patterns',
+    title: 'List workflow patterns',
+    description:
+      "The Design panel's workflow patterns (direct prompt, agent with tools, sequential, parallel, routing, handoff, review, …): id, name, when to use it, and its Mermaid graph. Use with apply_workflow_pattern.",
+    inputSchema: { ...browserIdArg },
+    command: 'listWorkflowPatterns',
+    toArgs: () => ({}),
+  },
+  {
+    name: 'apply_workflow_pattern',
+    title: 'Apply a workflow pattern',
+    description:
+      "Set the workflow of the whole prompt or of one section to a pattern's Mermaid graph (patternId from list_workflow_patterns) and save the design. It only records the workflow; nothing is executed. Edit the graph afterwards with set_design.",
+    inputSchema: { ...documentArgs, sectionId: designScopeArg, patternId: z.string() },
+    command: 'applyWorkflowPattern',
+    toArgs: (input) => input,
+  },
+  {
+    name: 'list_checks',
+    title: 'List checks',
+    description:
+      'The automatic checks and AI review criteria of the OPEN prompt per scope (sectionId null = whole prompt, else a section), with state "saved" or "proposed" and where each comes from (authored, studio, derived from design, platform). Call before propose_check so you do not propose a duplicate.',
+    inputSchema: { ...documentArgs, sectionId: designScopeArg },
+    command: 'listChecks',
+    toArgs: (input) => input,
+  },
+  {
+    name: 'run_checks',
+    title: 'Run automatic checks',
+    description:
+      "Run the OPEN prompt's automatic checks — the Verify button — and return the findings (severity, message, rule, section). Opens Verify → Findings for the person. Free and fast; it never runs the paid AI review.",
+    inputSchema: documentArgs,
+    command: 'runChecks',
+    toArgs: (input) => input,
+  },
+  {
+    name: 'get_findings',
+    title: 'Get findings',
+    description:
+      'The latest automatic findings and the AI review results per scope, each with freshness: "current" (matches the current text and checks), "stale" (from an older version) or "none"/"not-checked". AI review is started only by the person in Verify → AI review; this tool reads its results. Changes nothing.',
+    inputSchema: documentArgs,
+    command: 'getFindings',
+    toArgs: (input) => input,
+  },
+  {
+    name: 'propose_check',
+    title: 'Propose a check',
+    description:
+      'Propose an automatic check (kind "rule", e.g. { kind: "required-tool", name: "lookup_order" }, { kind: "required-output-literal", literal: "order_id" }, { kind: "valid-json-output" }) or an AI review criterion (kind "criterion" with a statement) for the whole prompt or one section. It is NOT saved: it appears in Verify → Checks & criteria marked Proposed, and the person accepts, edits or rejects it. Returns proposalId with status "proposed"; poll get_proposal_status for the decision.',
+    inputSchema: {
+      ...documentArgs,
+      sectionId: designScopeArg,
+      kind: z.enum(['rule', 'criterion']),
+      rule: z
+        .record(z.string(), z.unknown())
+        .optional()
+        .describe('For kind "rule": the check, { kind, …fields, severity?, enforcement? }'),
+      statement: z.string().optional().describe('For kind "criterion": what the AI reviewer should assess'),
+      severity: z.enum(['info', 'warning', 'error']).optional().describe('For a criterion. Default: warning'),
+    },
+    command: 'proposeCheck',
+    toArgs: (input) => input,
+  },
+  {
+    name: 'get_proposal_status',
+    title: 'Get proposal status',
+    description:
+      'Whether the person accepted a proposed check as proposed ("accepted"), changed it before saving ("edited", with the saved version), rejected it ("rejected"), or has not decided ("pending"). Proposals last until the tab reloads.',
+    inputSchema: { ...browserIdArg, proposalId: z.string().describe('From propose_check') },
+    command: 'getProposalStatus',
     toArgs: (input) => input,
   },
   {

@@ -29,8 +29,9 @@ import { usePromptDraft, usePromptSaveShortcut } from './hooks/use-prompt-draft'
 import { useSkillsSelection } from './hooks/use-skills-selection';
 import { useStructureEdits } from './hooks/use-structure-edits';
 import { useStudioShortcuts } from './hooks/use-studio-shortcuts';
-import { useVariablesRegistry } from './hooks/use-variables-registry';
+import { filterDeclaredKnownPlaceholderFindings, useVariablesRegistry } from './hooks/use-variables-registry';
 import { useVerificationWorkspace } from './hooks/use-verification-workspace';
+import { WHOLE_PROMPT } from './panels/verification/verification-editing';
 import type { WorkspaceProjectController } from './hooks/use-workspace-project';
 import { verifyDisabledReason } from './panels/VerificationPanel';
 import { createPromptAuthoringActions } from './prompt-authoring-actions';
@@ -207,6 +208,31 @@ export function StudioEditor({
       tree,
       confirmDiscard: panels.confirmDiscard,
       structure: { ...structure, removeSection: handleRemoveSection },
+    },
+    design: {
+      loadedDocument: doc,
+      tree,
+      design: selectedRoot?.design,
+      confirmDiscard: panels.confirmDiscard,
+      saveDesign: authoring.saveDesign,
+      showDesign: (designSection) => {
+        setDesignSectionId(designSection);
+        openPanel('design');
+      },
+    },
+    verification: {
+      loadedDocument: doc,
+      tree,
+      root: selectedRoot,
+      latest: verificationWorkspace.latest,
+      runChecks: () => {
+        const run = verificationWorkspace.open(WHOLE_PROMPT, 'findings');
+        return run && filterDeclaredKnownPlaceholderFindings(run, registry.registry);
+      },
+      semantic: verificationWorkspace.semantic,
+      proposals: verificationWorkspace.proposals.proposals,
+      addProposal: verificationWorkspace.proposals.add,
+      showChecks: (scope) => verificationWorkspace.open(scope, 'checks') !== null,
     },
   });
 
