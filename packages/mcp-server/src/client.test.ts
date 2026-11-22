@@ -1,5 +1,6 @@
 // @module-tag integration
 // outcome-flags: this standalone MCP server has no release-flag reads.
+import { createServer } from 'node:net';
 import { afterEach, beforeEach, expect, it } from 'vitest';
 import {
   FakeBrowser,
@@ -30,6 +31,18 @@ afterEach(async () => {
   await studio.close();
 });
 
+/**
+ * A loopback port with nothing listening on it. A fixed low port such as 1 is not safe: on a CI runner a
+ * connection to it may never be refused, and the test then waits for its timeout instead of the readable error.
+ */
+async function closedPort(): Promise<number> {
+  const server = createServer();
+  await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve));
+  const { port } = server.address() as { port: number };
+  await new Promise<void>((resolve) => server.close(() => resolve()));
+  return port;
+}
+
 async function tab(handler?: Parameters<typeof FakeBrowser.connect>[1]['handler']): Promise<FakeBrowser> {
   const browser = await FakeBrowser.connect(studio.url, handler === undefined ? {} : { handler });
   tabs.push(browser);
@@ -46,8 +59,9 @@ it('returns the tab result over the shared connection, and fails readably with n
   });
   expect(await connection.listTargets()).toHaveLength(1);
   // Then: both answered, and a call to a port with no Studio fails readably
-  const elsewhere = new StudioConnection({ port: 1, token: TEST_TOKEN });
-  await expect(elsewhere.call('listDocuments', {})).rejects.toThrow(/Cannot reach the studio on port 1/);
+  const port = await closedPort();
+  const elsewhere = new StudioConnection({ port, token: TEST_TOKEN });
+  await expect(elsewhere.call('listDocuments', {})).rejects.toThrow(`Cannot reach the studio on port ${port}`);
 });
 
 it('turns gateway refusals into readable errors with the candidates to choose from', async () => {
