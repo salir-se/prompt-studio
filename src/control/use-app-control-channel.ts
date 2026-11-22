@@ -40,4 +40,23 @@ export function useAppControlChannel(surface: AppCommandSurface): void {
   useEffect(() => {
     channelRef.current?.publishState({ ready, projectId, projectName, documentId, view });
   }, [ready, projectId, projectName, documentId, view]);
+
+  const text = surface.editorDraft?.text ?? surface.loadedDocument?.text;
+  const draft = surface.editorDraft?.dirty;
+  const variant = surface.loadedDocument?.variantSymbol;
+  useEffect(() => {
+    channelRef.current?.publishResources(['document', 'sections']);
+  }, [projectId, documentId, variant, text, draft]);
+
+  const findings = surface.verification?.latest?.result;
+  const freshness = surface.verification?.latest?.freshness;
+  const semantic = JSON.stringify(surface.verification?.semantic.statusBySectionId);
+  useEffect(() => {
+    channelRef.current?.publishResources(['findings']);
+  }, [projectId, documentId, variant, findings, freshness, semantic]);
+
+  const events = surface.editorEvents;
+  useEffect(() => {
+    channelRef.current?.publishResources(['events']);
+  }, [events]);
 }

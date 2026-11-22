@@ -4,6 +4,7 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import { type CallContext, resolveContext, type StudioCaller, StudioConnection } from './client';
+import { registerEditorResources } from './editor-resources';
 import { LIST_TARGETS_COMMAND, toolExecutor, TOOLS } from './tools';
 
 const USAGE = `Usage: prompt-studio-mcp [--stdio] [--help]
@@ -74,9 +75,16 @@ function registerTools(server: McpServer, context: McpContext): void {
   }
 }
 
-function buildServer(context: McpContext): McpServer {
-  const server = new McpServer({ name: 'prompt-studio', version: '1.1.0' }, { maxToolInputElements: 10_000 });
+function buildServer(context: McpContext, subscribe = false): McpServer {
+  const server = new McpServer(
+    { name: 'prompt-studio', version: '1.1.0' },
+    {
+      maxToolInputElements: 10_000,
+      ...(subscribe ? { capabilities: { resources: { subscribe: true } } } : {}),
+    },
+  );
   registerTools(server, context);
+  registerEditorResources(server, () => studioFor(context), subscribe);
   return server;
 }
 
@@ -127,7 +135,7 @@ async function serveHttp(context: McpContext): Promise<void> {
 }
 
 async function serveStdio(context: McpContext): Promise<void> {
-  await buildServer(context).connect(new StdioServerTransport());
+  await buildServer(context, true).connect(new StdioServerTransport());
 }
 
 /** Starts the MCP server: stdio with `--stdio` or MCP_TRANSPORT=stdio, otherwise Streamable HTTP. */

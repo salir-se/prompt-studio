@@ -14,6 +14,7 @@ All notable changes to this project are documented here. The format follows
 ### Added
 
 - MCP agents can list saved suites, opt in to running tests or comparing Git tags, and read per-case results shared with Evaluations (#9).
+- MCP clients can read live editor resources and subscribe over stdio to updates for documents, sections, findings, and recent actions (#10).
 - Section tools for agents (#6): the MCP tools `list_sections`, `read_section`, `edit_section`, `insert_section`,
   `move_section` and `remove_section`, the matching remote-control commands, and `ps sections`, `ps section`,
   `ps edit-section` and `ps call`. An agent changes one section at a time; every other section stays

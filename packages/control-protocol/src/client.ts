@@ -7,6 +7,8 @@ import {
   type ControlError,
   controlError,
   DEFAULT_COMMAND_TIMEOUT_MS,
+  type EditorChangedMessage,
+  EDITOR_RESOURCES,
   type ErrorMessage,
   SUPPORTED_PROTOCOL_VERSIONS,
   type TargetSummary,
@@ -36,6 +38,7 @@ export interface ControlClientOptions {
   readonly WebSocketImpl?: typeof WebSocket;
   /** Versions offered in `hello`; tests override it to check negotiation. */
   readonly protocolVersions?: readonly string[];
+  readonly editorEvents?: boolean;
 }
 
 export interface CommandOptions {
@@ -75,6 +78,7 @@ function handshakeCloseError(code: number, url: string): ControlError {
 export class ControlClient {
   private readonly waiters = new Map<string, Waiter>();
   private readonly closeListeners = new Set<(error: ControlError) => void>();
+  private readonly editorListeners = new Set<(event: EditorChangedMessage) => void>();
   private closedError: ControlError | null = null;
 
   private readonly socket: WebSocket;
@@ -107,6 +111,11 @@ export class ControlClient {
   onClose(listener: (error: ControlError) => void): () => void {
     this.closeListeners.add(listener);
     return () => this.closeListeners.delete(listener);
+  }
+
+  onEditorChanged(listener: (event: EditorChangedMessage) => void): () => void {
+    this.editorListeners.add(listener);
+    return () => this.editorListeners.delete(listener);
   }
 
   static connect(options: ControlClientOptions): Promise<ControlClient> {
@@ -151,6 +160,7 @@ export class ControlClient {
             protocolVersions: options.protocolVersions ?? SUPPORTED_PROTOCOL_VERSIONS,
             role: 'controller',
             token: options.token,
+            ...(options.editorEvents ? { editorEvents: true } : {}),
           }),
         );
       });
@@ -299,11 +309,22 @@ export class ControlClient {
     }
     const requestId = typeof message.requestId === 'string' ? message.requestId : undefined;
     if (requestId !== undefined) this.waiters.get(requestId)?.(message);
+    else if (
+      message.type === 'editor.changed' &&
+      typeof message.browserId === 'string' &&
+      Array.isArray(message.resources)
+    ) {
+      const changed = message.resources;
+      const resources = EDITOR_RESOURCES.filter((resource) => changed.includes(resource));
+      for (const listener of this.editorListeners)
+        listener({ type: 'editor.changed', browserId: message.browserId, resources });
+    }
   }
 
   private failAll(error: ControlError): void {
     if (this.closedError !== null) return;
     this.closedError = { ...error, outcome: 'unknown' };
+    this.editorListeners.clear();
     for (const waiter of [...this.waiters.values()]) waiter({ type: 'error', error: this.closedError });
     this.waiters.clear();
     for (const listener of [...this.closeListeners]) listener(this.closedError);

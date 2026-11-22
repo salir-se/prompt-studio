@@ -15,6 +15,7 @@ import { StudioEmptyState } from './components/StudioEmptyState';
 import { TopBar } from './components/TopBar';
 import type { PromptComposerHandle } from './composing/PromptComposer';
 import { useAppControlChannel } from './control/use-app-control-channel';
+import type { EditorEvent } from './control/editor-resource';
 import { useBanners } from './hooks/use-banners';
 import { useCommitSignal } from './hooks/use-commit-signal';
 import { useDocumentEditor } from './hooks/use-document-editor';
@@ -79,7 +80,24 @@ export function StudioEditor({
       : undefined,
   });
   const { doc, selectedRoot, tree, model } = editor;
-  const writing = usePromptDraft({ document: doc, onApply: editor.commitUndoableEdit, onError: setErrorMessage });
+  const [editorEvents, setEditorEvents] = useState<readonly EditorEvent[]>([]);
+  function recordEditorEvent(action: EditorEvent['action'], rootId = doc?.rootId ?? null) {
+    const next = { action, rootId, at: new Date().toISOString() };
+    setEditorEvents((current) => {
+      const previous = current.at(-1);
+      const sameEdit = action === 'document.edited' && previous?.action === action && previous.rootId === rootId;
+      const retained = sameEdit ? current.slice(0, -1) : current;
+      return [...retained.slice(-19), next];
+    });
+  }
+  const writing = usePromptDraft({
+    document: doc,
+    onApply(text, message) {
+      editor.commitUndoableEdit(text, message);
+      recordEditorEvent('document.applied');
+    },
+    onError: setErrorMessage,
+  });
   const selection = useNodeSelection({ editor, banners });
   const referenceEditor = useProjectFileEditor(workspace, boot, editor, () => selection.selectNode(undefined));
   const panels = usePanelState(writing, referenceEditor);
@@ -174,6 +192,8 @@ export function StudioEditor({
     activeProjectId: history?.activeProjectId ?? null,
     provider: history?.provider ?? null,
     activeView: view,
+    editorDraft: writing,
+    editorEvents,
     selectRoot: (rootId) => {
       const root = allRoots.find((candidate) => candidate.id === rootId);
       return root !== undefined && handleSelectRoot(root);
@@ -428,7 +448,9 @@ export function StudioEditor({
               catalog={allRoots}
               selectedRootId={editor.selectedRootId}
               selectedVariantSymbol={doc?.variantSymbol}
-              onSelectRoot={handleSelectRoot}
+              onSelectRoot={(root) => {
+                if (handleSelectRoot(root)) recordEditorEvent('document.opened', root.id);
+              }}
               onSelectVariant={handleSelectVariant}
               canCreatePrompt={history !== null}
               onCreatePrompt={handleCreatePrompt}
@@ -453,7 +475,10 @@ export function StudioEditor({
                 variables={registry.knownVariables}
                 tools={selectedRoot?.toolNames ?? []}
                 workflow={selectedRoot?.design?.workflow}
-                onChange={writing.change}
+                onChange={(text) => {
+                  writing.change(text);
+                  recordEditorEvent('document.edited');
+                }}
                 onApply={writing.apply}
                 onDiscard={writing.discard}
               />
@@ -527,6 +552,7 @@ export function StudioEditor({
         onCreatePrompt={authoring.create}
         onCancelCreate={() => setNewPromptOpen(false)}
         onSaveDesign={authoring.saveDesign}
+        onEditorEvent={recordEditorEvent}
         projectSection={projectSection}
         onProjectSectionChange={setProjectSection}
       />

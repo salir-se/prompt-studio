@@ -71,6 +71,16 @@ appears in the editor's **Evaluations** panel and uses the saved Run profile's s
 Both start commands return an ID as soon as the evaluation is queued. Set `allowPaidRun: true` only after the
 person authorizes using their configured model. When comparing, each test case runs against both versions.
 
+### Live editor resources
+
+Call `resources/list` to discover `studio://editor/<browserId>/document`, `sections`, `findings`, and `events`
+for each ready tab. `document` and `sections` include unapplied writing. `findings` shows the latest state from
+Verify. `events` lists up to 20 recent editor actions, including changes to writing, saved checks and saved versions.
+
+Launch `prompt-studio-mcp --stdio` to subscribe to an individual resource with `resources/subscribe`. When it
+changes, the client receives `notifications/resources/updated` with the URI and can call `resources/read` for the
+latest content. Use `resources/unsubscribe` to stop updates. Streamable HTTP supports discovery and reads.
+
 ### Design contracts and workflow patterns
 
 A design records, for the whole prompt and for each section, the expected **input** (free text, or JSON with a JSON

@@ -16,6 +16,7 @@ export type ProjectSection = 'project' | 'versions' | 'share';
 export interface PromptRepoPanelProps {
   readonly section?: ProjectSection;
   readonly onSectionChange?: (section: ProjectSection) => void;
+  readonly onSaveVersion?: () => void;
   readonly onClose: () => void;
   readonly presentation?: 'welcome' | 'drawer';
   readonly workspace?: WorkspaceProjectController;
@@ -32,6 +33,7 @@ export function PromptRepoPanel({
   presentation = 'drawer',
   section,
   onSectionChange,
+  onSaveVersion,
 }: PromptRepoPanelProps): React.JSX.Element {
   const [tab, setTab] = useState<ProjectSection>('project');
   const [location, setLocation] = useState('');
@@ -281,6 +283,7 @@ export function PromptRepoPanel({
                     event.preventDefault();
                     void run(async () => {
                       await workspace.save(message);
+                      onSaveVersion?.();
                       setNotice('Saved a version of your project.');
                     });
                   }}

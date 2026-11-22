@@ -15,6 +15,7 @@ import type { HistoryProvider, ProjectRef } from '../vcs/history-provider';
 import { providerKeyFor } from '../vcs/provider-keys';
 import type { ControlHandler } from './control-channel';
 import { buildDesignCommands, type DesignCommandSurface } from './design-commands';
+import { type EditorEvent, readEditorResource } from './editor-resource';
 import { buildEvaluationCommands, type EvaluationCommandScope } from './evaluation-commands';
 import { buildSectionCommands, type SectionCommandSurface } from './section-commands';
 import { buildVerificationCommands, type VerificationCommandSurface } from './verification-commands';
@@ -29,6 +30,8 @@ export interface AppCommandSurface {
   readonly provider: HistoryProvider | null;
   /** The active editor view (`write`, `graph`), reported to remote-control clients as tab state. */
   readonly activeView?: string;
+  readonly editorDraft?: { readonly text: string; readonly dirty: boolean };
+  readonly editorEvents?: readonly EditorEvent[];
   selectRoot(rootId: string): boolean;
   selectVariant(rootId: string, variantSymbol: string): boolean;
   /** Replaces the loaded document's text through the app's transactional write path. */
@@ -81,11 +84,13 @@ export function browserStateOf(surface: AppCommandSurface): BrowserState {
 
 /** Builds the command map the control channel resolves against. */
 export function buildAppCommands(surface: AppCommandSurface): Record<string, ControlHandler> {
+  const verification = surface.verification && buildVerificationCommands(surface.verification);
   return {
     ...(surface.sections === undefined ? {} : buildSectionCommands(surface.sections)),
     ...(surface.design === undefined ? {} : buildDesignCommands(surface.design)),
-    ...(surface.verification === undefined ? {} : buildVerificationCommands(surface.verification)),
+    ...verification,
     ...buildEvaluationCommands(surface.evaluation),
+    readEditorResource: (raw) => readEditorResource(surface, raw, verification?.getFindings),
     listDocuments: () =>
       surface.roots.map(({ id, title, loadability, toolNames }) => ({
         id,

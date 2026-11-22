@@ -81,6 +81,7 @@ The catalog holds these commands. Every one runs in a tab, through the same func
 | Design of the open prompt | `getDesign`, `setDesign` (`input`, `workflow`, `output`), `verifySample` (`sample`, `contract`), `listWorkflowPatterns`, `applyWorkflowPattern` (`patternId`) |
 | Verification of the open prompt | `listChecks`, `runChecks`, `getFindings`, `proposeCheck` (`kind`: `rule` or `criterion`), `getProposalStatus` (`proposalId`) |
 | Evaluations of the open project prompt | `listSuites`, `runSuite` (`suiteId`, `allowPaidRun: true`), `getEvaluationResults` (`evaluationId`), `compareVersions` (`suiteId`, `baselineTag`, optional `candidateTag`, `allowPaidRun: true`) |
+| Live editor resources | `readEditorResource` (`resource`: `document`, `sections`, `findings`, or `events`) |
 
 Section and design commands take `rootId` (and `variantSymbol` for a variant) of the open document and a
 `sectionId` from `listSections`; design commands without `sectionId` act on the whole prompt. `setDesign` and
@@ -91,6 +92,13 @@ starts the paid AI review. Each section edit is one text change through the edit
 commit, and the graph and the outline update in the tab. The gateway rejects an unknown action
 (`unsupported_command`) and invalid parameters (`invalid_input`: a missing field, a wrong type, a value outside an
 `enum`) before it routes anything to a tab. `ps capabilities` prints each command's parameter schema.
+
+The editor owns the live draft and recent actions. A tab sends `editor.changed` with the names of updated
+resources, and the gateway adds the authenticated tab ID. Controllers opt in with `editorEvents: true` in `hello`.
+The update contains resource names only. `readEditorResource` fetches content through the normal target check.
+
+MCP keeps subscriptions on the persistent stdio connection and forwards updates for subscribed URIs. The
+request-local HTTP transport serves resource discovery and reads. [MCP resource subscriptions](https://ts.sdk.modelcontextprotocol.io/v2/servers/resources)
 
 A command's result can mean different things. Phase 1 supports one completion level:
 

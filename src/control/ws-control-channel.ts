@@ -16,6 +16,8 @@ import {
   type BrowserState,
   CONTROL_WS_PATH,
   ControlCommandError,
+  EDITOR_RESOURCES,
+  type EditorResource,
   SUPPORTED_PROTOCOL_VERSIONS,
 } from '@prompt-studio/control-protocol';
 import { type ControlHandler, connectControlChannel } from './control-channel';
@@ -25,6 +27,7 @@ export const BROWSER_ID_STORAGE_KEY = 'prompt-studio.control.browserId';
 export interface ControlChannelHandle {
   /** Sends `state.update` when the state differs from what the gateway last saw. */
   publishState(state: BrowserState): void;
+  publishResources(resources: readonly EditorResource[]): void;
   close(): void;
 }
 
@@ -50,7 +53,7 @@ function sessionStore(): Pick<Storage, 'getItem' | 'setItem'> | null {
   }
 }
 
-const NOOP_HANDLE: ControlChannelHandle = { publishState: () => {}, close: () => {} };
+const NOOP_HANDLE: ControlChannelHandle = { publishState: () => {}, publishResources: () => {}, close: () => {} };
 
 /**
  * Opens the channel; returns a handle. `getState` is read for the `hello` of every (re)connection, so a
@@ -68,7 +71,7 @@ export function connectWsControlChannel(
   const Impl = options.WebSocketImpl ?? (typeof WebSocket === 'undefined' ? undefined : WebSocket);
   if (Impl === undefined) {
     const close = fallback();
-    return { publishState: () => {}, close };
+    return { ...NOOP_HANDLE, close };
   }
   const storage = options.storage === undefined ? sessionStore() : options.storage;
   const initialBackoffMs = options.initialBackoffMs ?? 500;
@@ -153,6 +156,7 @@ export function connectWsControlChannel(
         }
         // State may have changed between `hello` and `welcome`.
         publishState(getState());
+        send({ type: 'editor.changed', resources: EDITOR_RESOURCES });
         return;
       }
       if (message.type === 'command' && welcomed) {
@@ -186,6 +190,9 @@ export function connectWsControlChannel(
   connect();
   return {
     publishState,
+    publishResources(resources) {
+      if (welcomed) send({ type: 'editor.changed', resources });
+    },
     close() {
       closed = true;
       if (reconnectTimer !== null) clearTimeout(reconnectTimer);

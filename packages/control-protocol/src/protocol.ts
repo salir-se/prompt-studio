@@ -186,6 +186,16 @@ export interface StateUpdateMessage {
   readonly state: BrowserState;
 }
 
+export const EDITOR_RESOURCES = ['document', 'sections', 'findings', 'events'] as const;
+export type EditorResource = (typeof EDITOR_RESOURCES)[number];
+
+/** The gateway supplies browserId. Change notifications carry no document or event contents. */
+export interface EditorChangedMessage {
+  readonly type: 'editor.changed';
+  readonly browserId: string;
+  readonly resources: readonly EditorResource[];
+}
+
 /** Gateway → browser: run one command. */
 export interface BrowserCommandMessage {
   readonly type: 'command';
