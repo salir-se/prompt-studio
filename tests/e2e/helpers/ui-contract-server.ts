@@ -55,6 +55,7 @@ const response = await fetch(`${url}/__studio/prompt-repo/import`, {
     name: 'UI contracts',
     files: [
       workspaceFileForDesign(design, input.source, ''),
+      { path: 'skills/plain-language/SKILL.md', text: '# Plain language\n\nKeep instructions clear.\n' },
       {
         path: '.prompt-studio/project.json',
         text: JSON.stringify({

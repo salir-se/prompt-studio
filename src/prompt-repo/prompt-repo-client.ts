@@ -1,4 +1,5 @@
 import { type } from 'arktype';
+import type { PromptRepoDocument } from './layout';
 import type { ProjectDefinitions } from './project-definitions';
 /**
  * Browser client for the person's prompt repository. The studio server is the
@@ -9,6 +10,7 @@ export interface PromptDocument {
   readonly id: string;
   readonly title: string;
   readonly path: string;
+  readonly group?: PromptRepoDocument['group'];
   readonly text: string;
 }
 

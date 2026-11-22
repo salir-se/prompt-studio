@@ -59,7 +59,7 @@ test('PS-005: skill documents load from the repo and open like any other root', 
   await page.goto('/');
 
   // The starter skill (skills/plain-language/SKILL.md) appears as its own root.
-  const skillRoot = page.getByTestId('prompt-root-plain-language');
+  const skillRoot = page.getByRole('region', { name: 'Skills', exact: true }).getByTestId('prompt-root-plain-language');
   await expect(skillRoot).toBeVisible({ timeout: 15_000 });
   await skillRoot.click();
 

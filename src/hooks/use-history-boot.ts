@@ -98,7 +98,15 @@ export function useHistoryBoot({ historyProviderKind, snapshotStore, setErrorMes
   const [authoredRoots, setAuthoredRoots] = useState<readonly CatalogRoot[]>([]);
 
   /** The full sidebar/selection surface: inventory + manifest fragments + skill documents. */
-  const allRoots = useMemo(() => [...catalog, ...skillRoots, ...authoredRoots], [catalog, skillRoots, authoredRoots]);
+  const allRoots = useMemo(() => {
+    const workspaceSkills = new Set(
+      workspace?.documents.filter((document) => document.group === 'skills').map((document) => document.id),
+    );
+    const roots = authoredRoots.map((root): CatalogRoot =>
+      workspaceSkills.has(root.id) ? { ...root, group: 'skills' } : root,
+    );
+    return [...catalog, ...skillRoots, ...roots];
+  }, [catalog, skillRoots, authoredRoots, workspace]);
 
   /** See {@link collectShippedTexts}. */
   const shippedTexts = useMemo(() => collectShippedTexts([...catalog, ...skillRoots]), [catalog, skillRoots]);

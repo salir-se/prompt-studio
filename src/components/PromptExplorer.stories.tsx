@@ -67,13 +67,13 @@ export const MobileDrawer: Story = {
   parameters: { viewport: { defaultViewport: 'iphoneSE' } },
   play: async ({ canvasElement }) => {
     await userEvent.click(within(canvasElement).getByRole('button', { name: 'Toggle prompt explorer' }));
-    await expect(within(document.body).getByRole('searchbox', { name: 'Find a prompt' })).toHaveFocus();
+    await expect(within(document.body).getByRole('searchbox', { name: 'Find a document' })).toHaveFocus();
   },
 };
 export const MobileNoMatches: Story = {
   ...MobileDrawer,
   play: async (context) => {
     await MobileDrawer.play?.(context);
-    await userEvent.type(within(document.body).getByRole('searchbox', { name: 'Find a prompt' }), 'missing');
+    await userEvent.type(within(document.body).getByRole('searchbox', { name: 'Find a document' }), 'missing');
   },
 };
