@@ -64,7 +64,7 @@ jobs:
       - name: Manifest override journey
         run: PW_STUDIO_PORT=5291 PW_STUDIO_MANIFEST="$PWD/tests/e2e/fixtures/third-party.manifest.json" bun run test:e2e -- manifest-override
       - if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: playwright-results
           path: .output/test-results
