@@ -10,6 +10,8 @@
 FROM oven/bun:1.4.4 AS builder
 WORKDIR /src
 COPY package.json bun.lock bunfig.toml ./
+# bun applies patchedDependencies during install, so the patch must exist first.
+COPY patches ./patches
 COPY packages ./packages
 RUN bun install --frozen-lockfile --ignore-scripts
 COPY . .
