@@ -74,8 +74,24 @@ server and a deterministic local test model, so every take is the same.
 bun run build
 bun run demo:take -- getting-started                      # local Kokoro voice, free
 ARGO_TTS=elevenlabs bun run demo:take -- getting-started  # publish render, needs ELEVENLABS_API_KEY
-DEMO_SCREENSHOTS=docs/images bun run demo:take -- getting-started  # also refresh README screenshots
+DEMO_SCREENSHOTS=docs/images bun run demo:take -- getting-started  # also refresh the tutorial screenshots
 ```
 
 `demo:take` starts a fresh server with an empty profile, records, and stops it. Output goes to
 `.output/argo-videos/getting-started/`.
+
+### Refreshing the README gallery
+
+The "See it in action" images in the README come from `demos/readme-screenshots.ts`. It builds the app, starts a
+fresh server with an empty profile on port 5274, opens a fresh Git copy of `examples/starter`, connects the local
+test model from `demos/helpers/tutorial-model.ts`, and drives the real UI to each state. It needs `ffmpeg` on
+`PATH` (2x captures are downscaled to 1600 px wide).
+
+```bash
+bun run screenshots                                     # rewrite docs/images/*.png
+SCREENSHOTS_ONLY=ai-review,graph-checks bun run screenshots  # only these images
+SCREENSHOTS_DIR=.output/shots bun run screenshots       # write elsewhere to compare first
+```
+
+Runs are pixel-stable except the Git commit hashes shown in `evaluations-compare.png`. Open every image before
+committing it.
