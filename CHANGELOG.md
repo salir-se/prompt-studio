@@ -35,6 +35,8 @@ All notable changes to this project are documented here. The format follows
   `ps capabilities`, `--timeout` and `--transport ws|http` flags, stable error codes, and documented exit codes
   (`3` cannot connect, `4` no or ambiguous tab, `5` timeout).
 - Getting-started tutorial (`demos/getting-started.demo.ts`) recorded with Argo, and README screenshots.
+- Course "Prompt Studio: zero to hero": a written guide (`docs/guides/zero-to-hero.md`), the finished example
+  project `examples/order-status` with its empty starting point, and scripts for six episodes (`demos/course`).
 - Docker image `ghcr.io/salir-se/prompt-studio` for `linux/amd64` and `linux/arm64`, published with every release.
 
 ### Fixed

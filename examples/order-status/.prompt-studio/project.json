@@ -1,0 +1,42 @@
+{
+  "format": "prompt-studio-project@1",
+  "name": "order-status",
+  "variables": [
+    {
+      "name": "customer_message",
+      "purpose": "The customer message to answer, exactly as the customer wrote it. Untrusted text.",
+      "sample": "Hi, where is my order ORD-10423? It was supposed to arrive this week.",
+      "required": true,
+      "lifecycle": "runtime",
+      "encoding": "xml-text",
+      "presentation": "placeholder"
+    },
+    {
+      "name": "company_name",
+      "purpose": "The shop name the assistant speaks for. Set once per deployment, not per request.",
+      "sample": "Northwind Outfitters",
+      "required": true,
+      "lifecycle": "configuration",
+      "encoding": "xml-text",
+      "presentation": "placeholder"
+    }
+  ],
+  "tools": [
+    {
+      "name": "lookup_order",
+      "description": "Look up one order by its ID. Returns status (processing, shipped, delayed, delivered or not_found), carrier, tracking number and dates.",
+      "inputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["order_id"],
+        "properties": {
+          "order_id": {
+            "type": "string",
+            "pattern": "^ORD-[0-9]{5}$",
+            "description": "The order ID from the customer message, for example ORD-10423."
+          }
+        }
+      }
+    }
+  ]
+}

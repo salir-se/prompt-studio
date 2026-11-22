@@ -166,6 +166,8 @@ from `demos/getting-started.demo.ts`; see [Recording tutorials](docs/development
 
 - [Use with your AI agent (MCP)](docs/mcp.md) — connect Claude Code, Codex, or any MCP client.
 - [User guide](docs/user-guide.md) — projects, writing, runs, evaluations, verification, GitHub, files and recovery.
+- [Prompt Studio: zero to hero](docs/guides/zero-to-hero.md) — a six-part course that builds a tool-using
+  order-status assistant with your agent: contracts, architecture, checks, edge-case tests, and safe changes.
 - [Command-line control](docs/cli.md) — drive the open editor from a terminal.
 - [Remote control over WebSocket](docs/remote-control.md) — the protocol behind the CLI and MCP server: trust
   model, tab targeting, errors, limits.

@@ -31,6 +31,8 @@ files for whoever can reach it. `src/undeployable.test.ts` fails if the binding 
 | `packages/help-system`, `markdown`, `markdown-editor` | In-app help, Markdown rendering, and the Markdown editor. |
 | `packages/observability`, `types` | Structured logging and shared type shapes. |
 | `examples/starter` | A neutral example prompt project. |
+| `examples/order-status`, `examples/order-status-start` | The finished and the empty project of the zero-to-hero course. |
+| `demos/course` | Narration, shot lists and fake-model specification for the course videos. |
 | `tests/e2e` | Playwright journeys against the real dev server. |
 
 ## Checks
