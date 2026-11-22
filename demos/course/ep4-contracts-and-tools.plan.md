@@ -1,6 +1,6 @@
 # Episode 4 — Contracts and tools: shot list
 
-Narration: `ep4-contracts-and-tools.scenes.json`. Shared setup, fake model and tool names: [README](README.md).
+Narration: [`course-ep4-contracts-and-tools.scenes.json`](../course-ep4-contracts-and-tools.scenes.json). Shared setup, fake model and tool names: [README](README.md).
 
 - **Goal on screen:** a failing output sample, a passing one kept as an example, two more examples added by the
   agent; `company_name` added with the configuration lifecycle; one mocked run and one real MCP run with traces.

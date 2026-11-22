@@ -34,12 +34,12 @@
   },
   {
     "scene": "input-contract",
-    "text": "Now open Design. The whole prompt has three parts: expected input, workflow, and expected output. Set the input to structured JSON, with a schema that requires two strings, customer_message and company_name. Readiness says what is missing: structured input needs at least one valid example. Paste a real request, verify it, and keep it as the example.",
+    "text": "Now open Design. The whole prompt has three parts: expected input, workflow, and expected output. Set the input to structured JSON, with a schema that requires two strings, customer_message and company_name. Readiness says what is missing: the placeholder example does not match the new schema. Paste a real request, verify it, and keep it as the example.",
     "elevenLabsDirection": "[focused]"
   },
   {
     "scene": "output-contract",
-    "text": "The output contract matters most. Set it to structured JSON. The schema requires three fields. Reply is a non-empty string. Next action must be none, escalate, or ask for order ID. Order ID is either an ID in the right format, or null. No other fields are allowed. Readiness turns green, so save the prompt design. In episode four we test real payloads against this schema.",
+    "text": "The output contract matters most. Set it to structured JSON. The schema requires three fields. Reply is a non-empty string. Next action must be none, escalate, or ask for order ID. Order ID is either an ID in the right format, or null. No other fields are allowed. Readiness asks for one valid example here too, so verify a reply that asks for the order ID, keep it, and save the prompt design. In episode four we test more payloads against this schema.",
     "elevenLabsDirection": "[focused]",
     "overlay": {
       "type": "callout",

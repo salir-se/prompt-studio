@@ -62,7 +62,7 @@
   },
   {
     "scene": "save-share",
-    "text": "Save a version, with a message that says what changed and why. Then open Share: connect GitHub, name a branch, write a pull request title, and publish. Nothing leaves your computer until you choose to publish. Your reviewers see a normal pull request: the prompt file, its design, and the project definitions.",
+    "text": "Save a version, with a message that says what changed and why. Then open Share. Once you connect GitHub, you name a branch, write a pull request title, and publish. The recording stops here, because nothing leaves your computer until you choose to publish. Your reviewers see a normal pull request: the prompt file, its design, and the project definitions.",
     "elevenLabsDirection": "[calm]"
   },
   {

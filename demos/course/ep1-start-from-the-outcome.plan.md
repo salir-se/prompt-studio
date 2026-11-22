@@ -1,6 +1,6 @@
 # Episode 1 — Start from the outcome: shot list
 
-Narration: `ep1-start-from-the-outcome.scenes.json`. Shared setup, fake model and tool names: [README](README.md).
+Narration: [`course-ep1-start-from-the-outcome.scenes.json`](../course-ep1-start-from-the-outcome.scenes.json). Shared setup, fake model and tool names: [README](README.md).
 
 - **Goal on screen:** an empty project gets the `order-status` prompt with a mission, the `lookup_order` tool, the
   `customer_message` variable, and JSON Schema input and output contracts.

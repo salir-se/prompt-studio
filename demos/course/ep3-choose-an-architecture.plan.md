@@ -1,6 +1,6 @@
 # Episode 3 — Choose an architecture: shot list
 
-Narration: `ep3-choose-an-architecture.scenes.json`. Shared setup, fake model and tool names: [README](README.md).
+Narration: [`course-ep3-choose-an-architecture.scenes.json`](../course-ep3-choose-an-architecture.scenes.json). Shared setup, fake model and tool names: [README](README.md).
 
 - **Goal on screen:** the person picks a workflow pattern; the agent applies it and tailors the major workflow; the
   Tool use section gets its own sub-prompt design.
