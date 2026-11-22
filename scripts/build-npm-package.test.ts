@@ -48,9 +48,9 @@ describe('buildPackageJson', () => {
     expect(manifest.name).toBe('@salir-se/prompt-studio');
   });
 
-  it('publishes publicly to npmjs with provenance', () => {
+  it('publishes publicly to npmjs (no provenance flag: bun publish has none)', () => {
     expect(NPM_PUBLIC_REGISTRY).toBe('https://registry.npmjs.org');
-    expect(manifest.publishConfig).toEqual({ registry: NPM_PUBLIC_REGISTRY, access: 'public', provenance: true });
+    expect(manifest.publishConfig).toEqual({ registry: NPM_PUBLIC_REGISTRY, access: 'public' });
   });
 
   it('is publishable under the Apache-2.0 licence', () => {
@@ -81,7 +81,7 @@ describe('buildPackageJson', () => {
   it('records the version, module type, engine floor, and source repository', () => {
     expect(manifest.version).toBe('1.2.3');
     expect(manifest.type).toBe('module');
-    expect(manifest.engines).toEqual({ node: '>=22' });
+    expect(manifest.engines).toEqual({ bun: '>=1.4.4' });
     expect(manifest.repository).toEqual({ type: 'git', url: 'git+https://github.com/salir-se/prompt-studio.git' });
   });
 });

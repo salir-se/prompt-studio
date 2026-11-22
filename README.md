@@ -64,7 +64,7 @@ Download the binary for your computer from the
 | Linux, x64 | `prompt-studio-linux-x64` |
 | Windows, x64 | `prompt-studio-windows-x64.exe` |
 
-The binary includes its runtime; you do not need Node, Bun, Git, or Docker. On macOS and Linux, make it
+The binary includes its runtime; you do not need Bun, Git, or Docker. On macOS and Linux, make it
 executable (`chmod +x prompt-studio-*`) and rename it to `prompt-studio`. Each release lists SHA-256 checksums in
 `latest.json`.
 
@@ -76,13 +76,13 @@ prompt-studio --help
 
 The binaries are not code-signed yet. macOS Gatekeeper and Windows SmartScreen may warn on first launch.
 
-### Run with npm or Bun
+### Run with Bun
 
-Requires Node 22+ or Bun 1.4+. Run it from the prompt project you want to edit:
+Requires Bun 1.4.4 or newer (Bun is the only supported runtime). Run it from the prompt project you want to edit:
 
 ```bash
 cd path/to/your/prompt-project
-npx @salir-se/prompt-studio            # or: bunx @salir-se/prompt-studio
+bunx @salir-se/prompt-studio
 ```
 
 Flags: `--repo <dir>` (default: current directory), `--port <n>` (default `5273`), `--host <addr>` (default

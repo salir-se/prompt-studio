@@ -53,7 +53,7 @@ the browser. Then register the MCP server with your agent.
 ### Claude Code
 
 ```bash
-claude mcp add prompt-studio -- bunx -p @salir-se/prompt-studio prompt-studio-mcp --stdio
+claude mcp add prompt-studio -- bunx --package @salir-se/prompt-studio prompt-studio-mcp --stdio
 ```
 
 ### Codex
@@ -63,13 +63,13 @@ Add to `~/.codex/config.toml`:
 ```toml
 [mcp_servers.prompt-studio]
 command = "bunx"
-args = ["-p", "@salir-se/prompt-studio", "prompt-studio-mcp", "--stdio"]
+args = ["--package", "@salir-se/prompt-studio", "prompt-studio-mcp", "--stdio"]
 ```
 
 ### Any MCP client
 
-- **stdio:** run `bunx -p @salir-se/prompt-studio prompt-studio-mcp --stdio` as the server command.
-- **Streamable HTTP:** run `bunx -p @salir-se/prompt-studio prompt-studio-mcp` (listens on
+- **stdio:** run `bunx --package @salir-se/prompt-studio prompt-studio-mcp --stdio` as the server command.
+- **Streamable HTTP:** run `bunx --package @salir-se/prompt-studio prompt-studio-mcp` (listens on
   `http://127.0.0.1:5274/mcp`) and send `Authorization: Bearer <control token>`.
 
 ### Prompt Studio in Docker

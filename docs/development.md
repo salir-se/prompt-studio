@@ -5,7 +5,6 @@
 ## Requirements
 
 - [Bun](https://bun.sh) 1.4.4 or newer (runtime, package manager, linter, formatter, and type checker).
-- Node 22+ only to smoke-test the npm package.
 
 ```bash
 bun install
@@ -55,8 +54,8 @@ skip or a fallback do not count as that test.
 1. Update `CHANGELOG.md` and the version in `package.json`.
 2. Push a tag `vX.Y.Z`. The `release` workflow runs the checks, compiles the four binaries, writes
    `latest.json` with SHA-256 checksums, creates the GitHub Release, pushes the multi-arch Docker image to
-   `ghcr.io/salir-se/prompt-studio` (`X.Y.Z` and `latest`), and publishes the npm package with provenance (when
-   the `NPM_TOKEN` secret is set).
+   `ghcr.io/salir-se/prompt-studio` (`X.Y.Z` and `latest`), and publishes the npm package with `bun publish` (when
+   the `NPM_TOKEN` secret is set; `bun publish` cannot produce npm provenance, so releases carry none).
 
 Build and try the image locally:
 
