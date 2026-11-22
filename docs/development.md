@@ -23,6 +23,7 @@ files for whoever can reach it. `src/undeployable.test.ts` fails if the binding 
 | `src/` | The React 19 editor (Vite, Tailwind CSS 4, shadcn/ui primitives). |
 | `server/` | The local HTTP server: static files, file bridge, Git projects, runs, evaluations, MCP, GitHub publishing. |
 | `cli/` | The control-channel CLI (`bun run ps`). |
+| `packages/mcp-server` | The MCP server (`bun run mcp`) that lets AI agents drive the open editor. |
 | `src/release/` | The single-file binary entry point and the `update` command. |
 | `packages/prompts` | Prompt engine: prompt trees, designs, placeholders, verification profiles, blueprint serialization. |
 | `packages/agent` | LLM provider adapters, the one-shot call, the tool-calling loop, and the MCP HTTP client. |

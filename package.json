@@ -16,7 +16,8 @@
     "typecheck": "bun check -p tsconfig.json",
     "test:packages": "vitest run --config vitest.packages.config.ts --coverage.enabled=false",
     "ci": "bun run lint && bun run typecheck && bun run check:public-content && bun run test && bun run test:packages && bun run build",
-    "check:public-content": "bun scripts/check-public-content.ts"
+    "check:public-content": "bun scripts/check-public-content.ts",
+    "mcp": "bun packages/mcp-server/src/index.ts"
   },
   "dependencies": {
     "@radix-ui/react-focus-scope": "1.1.7",
@@ -77,5 +78,11 @@
   "engines": {
     "bun": ">=1.4.4",
     "node": ">=22"
+  },
+  "overrides": {
+    "zod": "4.6.7"
+  },
+  "patchedDependencies": {
+    "zod@4.6.7": "patches/zod@4.6.7.patch"
   }
 }
