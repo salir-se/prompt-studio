@@ -112,6 +112,7 @@ command works as usual.
 | Variable | Purpose |
 |---|---|
 | `NPM_PUBLISH_TOKEN` | npmjs.com token of the `salir-se` account (admin of the `salir` npm organization) for publishing `@salir/prompt-studio`. |
+| `DOCKERHUB_USERNAME`, `DOCKERHUB_TOKEN` | Docker Hub account `salirse` and its personal access token (Read & Write) for pushing `salirse/prompt-studio`. The release workflow reads the same values from GitHub secrets of the same names. |
 
 To use the secrets, a maintainer:
 
