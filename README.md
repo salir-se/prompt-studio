@@ -9,6 +9,8 @@ test the prompt, and tell the agent what to verify or change next.
 It runs on your computer, keeps every prompt in Git, and shares nothing until you open a pull request.
 Free and open source under Apache-2.0.
 
+![An AI agent edits a prompt through MCP while Prompt Studio shows the new Examples section live in the graph](docs/images/agent-edit.png)
+
 ## How it works
 
 1. **Your agent writes.** Connect the MCP server to Claude Code or Codex ([setup](docs/mcp.md)) and ask for a
@@ -21,6 +23,11 @@ Free and open source under Apache-2.0.
    that is faster, and publish a branch and pull request when the prompt is ready.
 
 ## What you can do in the editor
+
+| Run the prompt against your model | Keep test suites that catch regressions |
+|---|---|
+| ![Run panel with a captured JSON answer](docs/images/run.png) | ![Evaluations panel with two passing test cases](docs/images/evaluations.png) |
+
 
 - **Write and structure prompts.** Edit `prompts/<id>.md` files in a Markdown composer with placeholder
   completion. Explorer shows each prompt's section tree; you can add, reorder, and edit sections.
@@ -110,6 +117,11 @@ Images are published for `linux/amd64` and `linux/arm64`, tagged with the releas
 
 A project is any folder, usually a Git repository, that contains `prompts/<id>.md` files and optional
 `skills/<name>/SKILL.md` files. See the [user guide](docs/user-guide.md) for every workflow and its limits.
+
+## Video tour
+
+A 2-minute tour of the agent workflow is recorded from `demos/getting-started.demo.ts`; see
+[Recording tutorials](docs/development.md#recording-tutorials).
 
 ## Documentation
 
