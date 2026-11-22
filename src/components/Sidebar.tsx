@@ -67,12 +67,14 @@ export function Sidebar({
   const matching = catalog.filter((root) =>
     `${root.title} ${root.id}`.toLowerCase().includes(query.trim().toLowerCase()),
   );
+  const prompts = matching.filter((root) => root.group !== 'skills');
   const groups: Array<{ label: string; roots: CatalogRoot[] }> = [
-    { label: 'Prompts', roots: matching.filter((root) => root.loadability === 'constant') },
-    { label: 'Variants', roots: matching.filter((root) => root.loadability === 'resolver-variants') },
+    { label: 'Prompts', roots: prompts.filter((root) => root.loadability === 'constant') },
+    { label: 'Skills', roots: matching.filter((root) => root.group === 'skills') },
+    { label: 'Variants', roots: prompts.filter((root) => root.loadability === 'resolver-variants') },
     {
       label: 'Unavailable',
-      roots: matching.filter((root) => root.loadability === 'inline' || root.loadability === 'external'),
+      roots: prompts.filter((root) => root.loadability === 'inline' || root.loadability === 'external'),
     },
   ];
 
@@ -85,15 +87,15 @@ export function Sidebar({
       <TimelineScrollRegion className="min-h-0 flex-1" viewportClassName="overflow-x-hidden">
         <div className="shrink-0 space-y-3 border-b border-border p-4">
           <h2 className="text-sm font-semibold">
-            Prompts{' '}
+            Documents{' '}
             <span className="font-normal text-muted-foreground" data-testid="prompt-root-count">
               ({catalog.length})
             </span>
           </h2>
           <Input
             type="search"
-            aria-label="Find a prompt"
-            placeholder="Find a prompt…"
+            aria-label="Find a document"
+            placeholder="Find a document…"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             className="h-9 w-full min-w-0 rounded-lg border border-input bg-background px-3 text-sm"
@@ -102,7 +104,7 @@ export function Sidebar({
         <div className="flex flex-col gap-4 p-3">
           {matching.length === 0 && catalog.length > 0 && (
             <div className="space-y-2 rounded-lg bg-muted/50 p-3 text-sm">
-              <p>No matching prompts</p>
+              <p>No matching documents</p>
               <button type="button" onClick={() => setQuery('')} className="text-primary underline">
                 Clear search
               </button>
@@ -121,7 +123,7 @@ export function Sidebar({
           {groups.map(
             (group) =>
               group.roots.length > 0 && (
-                <div key={group.label}>
+                <section key={group.label} aria-label={group.label}>
                   <div className="px-2 pb-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
                     {group.label}
                   </div>
@@ -178,7 +180,7 @@ export function Sidebar({
                       );
                     })}
                   </div>
-                </div>
+                </section>
               ),
           )}
         </div>

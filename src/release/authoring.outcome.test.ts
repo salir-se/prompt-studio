@@ -205,7 +205,7 @@ it('authors and structures a generic prompt, preserves cancelled navigation, and
     await page.getByRole('button', { name: 'Toggle prompt explorer', exact: true }).click();
     await browserExpect(page.getByRole('tree', { name: 'Prompt sections', exact: true })).toBeVisible();
     const explorerDialog = page.getByRole('dialog', { name: 'Prompt explorer', exact: true });
-    await browserExpect(explorerDialog.getByRole('searchbox', { name: 'Find a prompt' })).toBeFocused();
+    await browserExpect(explorerDialog.getByRole('searchbox', { name: 'Find a document' })).toBeFocused();
     await page.keyboard.press('Escape');
     await browserExpect(explorerDialog).toHaveCount(0);
     await browserExpect(explorer).toBeFocused();
@@ -226,7 +226,7 @@ it('authors and structures a generic prompt, preserves cancelled navigation, and
     await browserExpect(explorerDialog).toHaveCount(0);
     await browserExpect(variables.getByLabel('Name', { exact: true })).toHaveValue('document_source');
     await page.keyboard.press('Alt+e');
-    await browserExpect(explorerDialog.getByRole('searchbox', { name: 'Find a prompt' })).toBeFocused();
+    await browserExpect(explorerDialog.getByRole('searchbox', { name: 'Find a document' })).toBeFocused();
     await page.keyboard.press('Escape');
     await browserExpect(explorerDialog).toHaveCount(0);
     await browserExpect(variables.getByLabel('Name', { exact: true })).toHaveValue('document_source');

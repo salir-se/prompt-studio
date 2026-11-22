@@ -46,7 +46,7 @@ export const Project: Story = {};
 export const Empty: Story = { args: { catalog: [], outline: undefined } };
 export const NoMatches: Story = {
   play: async ({ canvasElement }) => {
-    await userEvent.type(within(canvasElement).getByRole('searchbox', { name: 'Find a prompt' }), 'missing prompt');
+    await userEvent.type(within(canvasElement).getByRole('searchbox', { name: 'Find a document' }), 'missing prompt');
   },
 };
 export const Mobile: Story = { parameters: { viewport: { defaultViewport: 'iphoneSE' } } };

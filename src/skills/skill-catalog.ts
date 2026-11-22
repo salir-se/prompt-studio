@@ -111,6 +111,7 @@ export async function loadSkillCatalogRoots(skillsRoot: string = SKILLS_BRIDGE_R
       const root: CatalogRoot = {
         id: entry.id,
         title: `Skill: ${name}`,
+        group: 'skills',
         loadability: 'constant',
         status: 'live',
         text,

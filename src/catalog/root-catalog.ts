@@ -39,6 +39,7 @@ export interface CatalogRoot {
   id: string;
   /** Human title derived from the id (e.g. 'Scout', 'Critic Outbound (agent loop)'). */
   title: string;
+  group?: StudioManifestDocument['group'];
   loadability: RootLoadability;
   status: 'live' | 'callable' | 'evaluation';
   /** Present iff `loadability === 'constant'`. */
@@ -233,6 +234,7 @@ export function buildRootCatalog(
     return {
       id: entry.id,
       title: workspace?.design.title ?? document.title,
+      group: document.group,
       loadability: text !== null ? 'constant' : 'external',
       status: 'live',
       ...(text !== null ? { text } : {}),

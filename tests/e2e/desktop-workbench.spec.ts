@@ -28,6 +28,36 @@ test('saving a prompt Design declaration clears only that placeholder from the s
   }
 });
 
+test('Explorer lists and opens repository skills in their own group', async ({ page }) => {
+  const explorer = page.getByTestId('prompt-studio-sidebar');
+  const skill = explorer.getByRole('region', { name: 'Skills', exact: true }).getByTestId('prompt-root-plain-language');
+  await expect(skill).toBeVisible();
+  const prompts = explorer.getByRole('region', { name: 'Prompts', exact: true });
+  await expect(prompts.getByTestId('prompt-root-contracts')).toBeVisible();
+  await expect(prompts.getByTestId('prompt-root-plain-language')).toHaveCount(0);
+  const search = explorer.getByRole('searchbox', { name: 'Find a document' });
+  await search.fill('plain-language');
+  await expect(skill).toBeVisible();
+  await expect(prompts).toHaveCount(0);
+  await search.clear();
+  await skill.click();
+  await expect(page.getByRole('textbox', { name: 'Prompt markdown', exact: true })).toHaveValue(
+    /Keep instructions clear/,
+  );
+  for (const width of [1440, 375]) {
+    await page.setViewportSize({ width, height: width === 375 ? 667 : 900 });
+    if (width === 375) await page.getByRole('button', { name: 'Toggle prompt explorer' }).click();
+    for (const theme of ['light', 'dark']) {
+      await page.evaluate((theme) => document.documentElement.classList.toggle('dark', theme === 'dark'), theme);
+      await expect(skill).toBeVisible();
+      await page.screenshot({
+        path: test.info().outputPath(`explorer-skills-${width}-${theme}.png`),
+        animations: 'disabled',
+      });
+    }
+  }
+});
+
 // Outcome test: create, write and save from the actual standalone app without feedback covering actions.
 test('the document workspace preserves usable editing space and reachable save actions', async ({ page }) => {
   await page.getByRole('button', { name: 'New prompt', exact: true }).click();

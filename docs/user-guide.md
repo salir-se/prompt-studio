@@ -11,7 +11,7 @@
    This can reopen a previously published branch. The editor makes an isolated in-memory copy. It never modifies
    the source checkout, its index, or its branch. **Recent projects** resumes saved work.
 3. Create a prompt and write in **Write**; preview the draft and choose **Apply changes** (Ctrl/Cmd+S or Ctrl/Cmd+Enter).
-   **Explorer** searches prompts and exposes a keyboard-operable section tree. Its actions add named sections,
+   **Explorer** groups prompts and skills separately, searches both, and exposes a keyboard-operable section tree. Its actions add named sections,
    reorder, remove, edit, and design sub-prompts. Browsing preserves unapplied writing. On narrow screens,
    Explorer opens as a side drawer: search is focused; Close or Escape returns to your work.
    **Graph** and **Design** offer alternate views. **Variables** and **Tools** hold project-owned definitions;

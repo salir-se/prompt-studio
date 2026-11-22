@@ -52,7 +52,7 @@ export function PromptExplorer({
         }}
       >
         <DialogTitle className="sr-only">Prompt explorer</DialogTitle>
-        <DialogDescription className="sr-only">Find a prompt or navigate its sections.</DialogDescription>
+        <DialogDescription className="sr-only">Find a prompt or skill, or navigate its sections.</DialogDescription>
         {body}
       </DialogContent>
     </Dialog>

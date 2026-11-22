@@ -18,14 +18,14 @@ it('finds a prompt by name and lets the author recover from no search results', 
     />,
   );
   // When: the author searches by a prompt's name
-  const search = screen.getByRole('searchbox', { name: 'Find a prompt' });
+  const search = screen.getByRole('searchbox', { name: 'Find a document' });
   fireEvent.change(search, { target: { value: 'triage' } });
   // Then: only the matching prompt stays listed
   expect(screen.getByTestId('prompt-root-support-triage')).toBeInTheDocument();
   expect(screen.queryByTestId('prompt-root-release-notes')).not.toBeInTheDocument();
   // When: the search matches nothing
   fireEvent.change(search, { target: { value: 'a prompt that does not exist' } });
-  expect(screen.getByText('No matching prompts')).toBeInTheDocument();
+  expect(screen.getByText('No matching documents')).toBeInTheDocument();
   // Then: Clear search brings every prompt back
   fireEvent.click(screen.getByRole('button', { name: 'Clear search' }));
   expect(screen.getByTestId('prompt-root-release-notes')).toBeInTheDocument();
