@@ -87,7 +87,7 @@ export function useVariablesRegistry({
   editor: DocumentEditor;
   projectDefinitions?: ProjectDefinitions;
 }) {
-  const { doc, model, verificationResult, selectedRootId } = editor;
+  const { doc, model, verificationResult, selectedRoot, selectedRootId } = editor;
   const { history } = boot;
   const [legacyRegistry, setRegistry] = useState<VariablesRegistry>(() => buildBuiltinRegistry());
   const registry = useMemo<VariablesRegistry>(
@@ -167,7 +167,18 @@ export function useVariablesRegistry({
   }, [model, registry]);
 
   // Undeclared-use finding for the CURRENT document — never a save/edit gate, see module doc.
-  const undeclaredNames = useMemo(() => (doc ? undeclaredVariables(registry, doc.text) : []), [doc, registry]);
+  const designVariables = selectedRoot?.design?.variables;
+  const undeclaredNames = useMemo(
+    () =>
+      doc
+        ? undeclaredVariables(
+            registry,
+            doc.text,
+            designVariables?.map((variable) => variable.name),
+          )
+        : [],
+    [doc, registry, designVariables],
+  );
 
   const displayedVerificationResult = useMemo(
     () => filterDeclaredKnownPlaceholderFindings(verificationResult, registry),

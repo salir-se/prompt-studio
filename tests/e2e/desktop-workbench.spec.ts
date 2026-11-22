@@ -1,6 +1,33 @@
 import { textContrast } from '../../src/release/browser-text-contrast';
 import { expect, test } from './helpers/ui-contract-fixture';
 
+test('saving a prompt Design declaration clears only that placeholder from the status bar', async ({ page }) => {
+  const editor = page.getByRole('textbox', { name: 'Prompt markdown', exact: true });
+  await editor.fill('<mission>Write for {{customer}} about {{topic}}.</mission>');
+  await page.getByRole('button', { name: 'Apply changes', exact: true }).click();
+  const count = page.getByTestId('status-undeclared-count');
+  await expect(count).toHaveText('2 undeclared');
+
+  await page.getByRole('button', { name: 'Design', exact: true }).click();
+  const panel = page.getByRole('complementary', { name: 'Prompt design', exact: true });
+  await panel.getByText('Advanced: complete versioned design', { exact: true }).click();
+  const json = panel.getByRole('textbox', { name: 'Prompt design JSON', exact: true });
+  const design = JSON.parse(await json.inputValue());
+  design.variables.push({ ...design.variables[0], name: 'customer', purpose: 'The person asking for help.' });
+  await json.fill(JSON.stringify(design));
+  await panel.getByRole('button', { name: 'Save prompt design', exact: true }).click();
+  await expect(panel.getByRole('status')).toHaveText('Prompt design saved and ready.');
+  await panel.getByRole('button', { name: 'Close', exact: true }).click();
+  await expect(count).toHaveText('1 undeclared');
+  for (const width of [1440, 375]) {
+    await page.setViewportSize({ width, height: width === 375 ? 667 : 900 });
+    for (const theme of ['light', 'dark']) {
+      await page.evaluate((theme) => document.documentElement.classList.toggle('dark', theme === 'dark'), theme);
+      await page.screenshot({ path: test.info().outputPath(`undeclared-count-${width}-${theme}.png`) });
+    }
+  }
+});
+
 // Outcome test: create, write and save from the actual standalone app without feedback covering actions.
 test('the document workspace preserves usable editing space and reachable save actions', async ({ page }) => {
   await page.getByRole('button', { name: 'New prompt', exact: true }).click();

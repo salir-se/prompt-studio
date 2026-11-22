@@ -119,9 +119,13 @@ export function declareVariable(
   return { entries: [...r.entries, entry] };
 }
 
-/** Placeholder names used in `docText` that are not declared anywhere in `registry` — deduped, sorted. */
-export function undeclaredVariables(registry: VariablesRegistry, docText: string): readonly string[] {
-  const declared = new Set(registry.entries.map((entry) => entry.name));
+/** Placeholder names with no registry or prompt design declaration, deduped and sorted. */
+export function undeclaredVariables(
+  registry: VariablesRegistry,
+  docText: string,
+  designVariableNames: readonly string[] = [],
+): readonly string[] {
+  const declared = new Set([...registry.entries.map((entry) => entry.name), ...designVariableNames]);
   return extractPlaceholderNames(docText)
     .filter((name) => !declared.has(name))
     .sort((a, b) => a.localeCompare(b));

@@ -16,6 +16,7 @@
    Explorer opens as a side drawer: search is focused; Close or Escape returns to your work.
    **Graph** and **Design** offer alternate views. **Variables** and **Tools** hold project-owned definitions;
    upload/download their JSON files there. Imports preview new names and conflicts before applying changes.
+   The status bar counts placeholders without a declaration in project **Variables** or the open prompt's **Design**.
    Tool definitions describe availability; they do not grant runtime permissions. **Browse MCP tools** imports a discovered schema.
    In **App settings → MCP servers**, register an HTTP(S) endpoint and discover its tools. **Run → Tool responses**
    chooses predefined JSON mocks or explicit real calls; test cases can override those choices. Calls and their modes
