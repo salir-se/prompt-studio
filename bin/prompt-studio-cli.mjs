@@ -1,6 +1,6 @@
 #!/usr/bin/env bun
 /**
- * Launcher for the Prompt Studio control CLI inside the `@salir-se/prompt-studio` npm package
+ * Launcher for the Prompt Studio control CLI inside the `@salir/prompt-studio` npm package
  * (ADR-204 amendment 2026-09-15). Checked in as `.mjs` and copied verbatim to
  * `bin/prompt-studio-cli.js` by scripts/build-npm-package.ts — it imports the bundled
  * `../cli/main.js`, so it only runs inside the assembled package, never from this repo.

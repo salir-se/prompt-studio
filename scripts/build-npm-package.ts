@@ -2,7 +2,7 @@
 /**
  * Assembles the publishable npm package for Prompt Studio.
  *
- * The package — `@salir-se/prompt-studio` on the public npm registry — is the editor as a
+ * The package — `@salir/prompt-studio` on the public npm registry — is the editor as a
  * self-contained tarball, runnable with `bunx` (Bun is the only supported runtime). The server and CLI are fully bundled, so the
  * package never needs (or carries) a node_modules directory. The tarball scans below also refuse
  * stray prompt-content trees from the original private build, as a second line of defence next to
@@ -39,7 +39,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 /** Published under the GitHub organization's npm scope. */
-export const NPM_PACKAGE_NAME = '@salir-se/prompt-studio';
+export const NPM_PACKAGE_NAME = '@salir/prompt-studio';
 
 export const NPM_PUBLIC_REGISTRY = 'https://registry.npmjs.org';
 

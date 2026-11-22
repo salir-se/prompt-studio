@@ -15,15 +15,11 @@ import {
 } from './build-npm-package';
 
 /**
- * Unit contract for the npm-package assembly helpers (ADR-204 amendment 2026-09-15).
+ * Unit contract for the npm-package assembly helpers.
  *
- * The published package is `@salir-se/prompt-studio` on GitHub Packages — the scope MUST equal
- * the GitHub org (`salir-se`) for npm.pkg.github.com to accept it, and the package must stay
- * PRIVATE: like the container image, the bundle can carry verbatim prompt prose (structure
- * contracts), so registry authentication — not content absence — is the IP boundary. The
- * helpers here encode the properties that make that true: the name/scope, the private-registry
- * publishConfig, the restricted access, and the tarball scans that keep the three protected
- * content paths and any node_modules tree out of the published artifact.
+ * The published package is `@salir/prompt-studio` on the public npm registry. The helpers encode its name,
+ * public publishConfig, Apache-2.0 licence, bins and file list, plus the tarball scans that keep the private
+ * build's prompt-content paths and any node_modules tree out of the published artifact.
  */
 
 describe('normalizeVersion', () => {
@@ -44,8 +40,8 @@ describe('buildPackageJson', () => {
   const manifest = buildPackageJson('1.2.3');
 
   it('names the package with the GitHub organization scope', () => {
-    expect(NPM_PACKAGE_NAME).toBe('@salir-se/prompt-studio');
-    expect(manifest.name).toBe('@salir-se/prompt-studio');
+    expect(NPM_PACKAGE_NAME).toBe('@salir/prompt-studio');
+    expect(manifest.name).toBe('@salir/prompt-studio');
   });
 
   it('publishes publicly to npmjs (no provenance flag: bun publish has none)', () => {

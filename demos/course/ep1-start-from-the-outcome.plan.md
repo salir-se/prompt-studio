@@ -83,7 +83,7 @@ Values used below:
 ## agent-sees-contract
 
 - **Agent panel:**
-  1. `cmd`: `claude mcp add prompt-studio -- bunx --package @salir-se/prompt-studio prompt-studio-mcp --stdio`
+  1. `cmd`: `claude mcp add prompt-studio -- bunx --package @salir/prompt-studio prompt-studio-mcp --stdio`
   2. `you`: `Read the order-status prompt in Prompt Studio and summarize its contract.`
   3. `tool`: `list_documents`
   4. `tool`: `open_document order-status`

@@ -6,7 +6,7 @@ It has no prompts yet. Copy it to a new folder, make it a Git repository, and op
 ```bash
 cp -r examples/order-status-start ~/order-status && cd ~/order-status
 git init -q -b main && git add -A && git commit -q -m "Empty project"
-bunx @salir-se/prompt-studio --repo .
+bunx @salir/prompt-studio --repo .
 ```
 
 The finished state is in [`../order-status`](../order-status/).
