@@ -1,6 +1,6 @@
 #!/usr/bin/env bun
 /**
- * Smoke-boots the packed `@salir-se/prompt-studio` npm tarball under Bun before the
+ * Smoke-boots the packed `@salir/prompt-studio` npm tarball under Bun before the
  * publish workflow lets it near the registry (ADR-204 amendment 2026-09-15).
  *
  * The publish workflow runs this between `bun pm pack` and `bun publish`. The Dockerfile history
@@ -112,7 +112,7 @@ async function main(): Promise<void> {
   console.log('[npm-smoke] installing tarball...');
   await writeFile(path.join(workDir, 'package.json'), '{"name":"smoke-consumer","private":true}\n');
   execFileSync('bun', ['add', tarball], { cwd: workDir, stdio: 'inherit' });
-  const pkgDir = path.join(workDir, 'node_modules', '@salir-se', 'prompt-studio');
+  const pkgDir = path.join(workDir, 'node_modules', '@salir', 'prompt-studio');
   const serverBin = path.join(pkgDir, 'bin', 'prompt-studio.js');
   const cliBin = path.join(pkgDir, 'bin', 'prompt-studio-cli.js');
   for (const required of [
@@ -172,23 +172,25 @@ async function main(): Promise<void> {
     }
     console.log('[npm-smoke] read-only bridge (401 / 403 / 200 shapes): ok');
 
-    // 5. Control CLI transport round-trip. A full command needs a live editor TAB (a browser) —
-    //    headlessly, the designed no-tab contract is the actionable 503 (ADR-236), so assert
-    //    exactly that end to end: token-file discovery → POST → server gate → client error.
-    //    A wrong --token must reach the same transport but die at the 401 gate instead.
+    // 5. Control CLI round trip over WebSocket. A full command needs a live editor tab (a browser);
+    //    headlessly, the documented no-tab result is `not_ready`, so assert exactly that end to end:
+    //    token-file discovery → WebSocket handshake → gateway → client error. A wrong --token must
+    //    reach the same gateway but fail the handshake with `unauthorized` instead.
     const noTab = await runCapturing('bun', [cliBin, '--port', String(port), 'docs', '--json']);
-    if (noTab.exitCode !== 1 || !noTab.output.includes('No editor tab is connected')) {
-      fail(
-        `cli without a tab should exit 1 with the no-tab message, got ${noTab.exitCode}: ${noTab.output.slice(0, 200)}`,
-      );
+    // Exit codes and error codes follow docs/remote-control.md: 4 = target problem (`not_ready`),
+    // 3 = connection problem (`unauthorized`).
+    if (noTab.exitCode !== 4 || !noTab.output.includes('"code":"not_ready"')) {
+      fail(`cli without a tab should exit 4 with not_ready, got ${noTab.exitCode}: ${noTab.output.slice(0, 200)}`);
     }
     const badToken = await runCapturing('bun', [cliBin, '--port', String(port), '--token', 'wrong', 'docs', '--json']);
-    if (badToken.exitCode !== 1 || !badToken.output.includes('Unauthorized')) {
+    if (badToken.exitCode !== 3 || !badToken.output.includes('"code":"unauthorized"')) {
       fail(
-        `cli with a wrong token should exit 1 with Unauthorized, got ${badToken.exitCode}: ${badToken.output.slice(0, 200)}`,
+        `cli with a wrong token should exit 3 with unauthorized, got ${badToken.exitCode}: ${badToken.output.slice(0, 200)}`,
       );
     }
-    console.log('[npm-smoke] control CLI transport + auth gates (no-tab 503 / bad-token 401): ok');
+    console.log(
+      '[npm-smoke] control CLI over WebSocket + gates (no tab: exit 4 not_ready / bad token: exit 3 unauthorized): ok',
+    );
 
     // 6. Graceful shutdown.
     server.kill('SIGTERM');

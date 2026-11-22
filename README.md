@@ -118,7 +118,7 @@ Requires Bun 1.4.4 or newer (Bun is the only supported runtime). Run it from the
 
 ```bash
 cd path/to/your/prompt-project
-bunx @salir-se/prompt-studio
+bunx @salir/prompt-studio
 ```
 
 Flags: `--repo <dir>` (default: current directory), `--port <n>` (default `5273`), `--host <addr>` (default

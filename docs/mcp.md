@@ -96,13 +96,13 @@ tabs open, a call without it fails and the error lists the tabs; the agent calls
 
 ## Set up
 
-Start Prompt Studio first (`prompt-studio`, `bunx @salir-se/prompt-studio`, or Docker) and open your project in
+Start Prompt Studio first (`prompt-studio`, `bunx @salir/prompt-studio`, or Docker) and open your project in
 the browser. Then register the MCP server with your agent.
 
 ### Claude Code
 
 ```bash
-claude mcp add prompt-studio -- bunx --package @salir-se/prompt-studio prompt-studio-mcp --stdio
+claude mcp add prompt-studio -- bunx --package @salir/prompt-studio prompt-studio-mcp --stdio
 ```
 
 ### Codex
@@ -112,13 +112,13 @@ Add to `~/.codex/config.toml`:
 ```toml
 [mcp_servers.prompt-studio]
 command = "bunx"
-args = ["--package", "@salir-se/prompt-studio", "prompt-studio-mcp", "--stdio"]
+args = ["--package", "@salir/prompt-studio", "prompt-studio-mcp", "--stdio"]
 ```
 
 ### Any MCP client
 
-- **stdio:** run `bunx --package @salir-se/prompt-studio prompt-studio-mcp --stdio` as the server command.
-- **Streamable HTTP:** run `bunx --package @salir-se/prompt-studio prompt-studio-mcp` (listens on
+- **stdio:** run `bunx --package @salir/prompt-studio prompt-studio-mcp --stdio` as the server command.
+- **Streamable HTTP:** run `bunx --package @salir/prompt-studio prompt-studio-mcp` (listens on
   `http://127.0.0.1:5274/mcp`) and send `Authorization: Bearer <control token>`.
 
 ### Prompt Studio in Docker

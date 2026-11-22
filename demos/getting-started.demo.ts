@@ -86,7 +86,7 @@ test(DEMO_NAME, async ({ page, narration }) => {
   await agentSay(
     page,
     'cmd',
-    'claude mcp add prompt-studio -- bunx --package @salir-se/prompt-studio prompt-studio-mcp --stdio',
+    'claude mcp add prompt-studio -- bunx --package @salir/prompt-studio prompt-studio-mcp --stdio',
     14,
   );
   await cursor.click(pathField);

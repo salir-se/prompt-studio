@@ -15,7 +15,7 @@ import { defaultControlTokenDir, removeControlTokenFile, writeControlTokenFile }
  * `STUDIO_*` environment variables (see `server/config.ts`). Superseding ADR-202, which described
  * the bridge as Vite-dev-only — it's a `configureServer` plugin hook with no equivalent in a
  * production build, hence this standalone process for the Docker image — and, since the ADR-204
- * npm-package amendment, for the `@salir-se/prompt-studio` launchers under `bin/`.
+ * npm-package amendment, for the `@salir/prompt-studio` launchers under `bin/`.
  *
  * This file is intentionally the thin shell: config parsing lives in `config.ts`, HTTP routing and
  * bridge/static dispatch lives in `app.ts`. Nothing here is unit tested directly — there is no

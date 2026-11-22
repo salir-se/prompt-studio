@@ -7,9 +7,9 @@ All notable changes to this project are documented here. The format follows
 
 ### Changed
 
-- Bun is the only supported runtime. The npm package `@salir-se/prompt-studio` now requires Bun 1.4.4 or newer
+- Bun is the only supported runtime. The npm package `@salir/prompt-studio` now requires Bun 1.4.4 or newer
   (`engines.bun`), its launchers run under `bun`, and it is published with `bun publish`, which cannot produce npm
-  provenance attestations, so new releases carry none. Run it with `bunx @salir-se/prompt-studio`.
+  provenance attestations, so new releases carry none. Run it with `bunx @salir/prompt-studio`.
 
 ### Added
 
@@ -66,7 +66,7 @@ All notable changes to this project are documented here. The format follows
 
 ### Changed
 
-- The npm package `@salir-se/prompt-studio` is published publicly on npmjs.
+- The npm package `@salir/prompt-studio` is published publicly on npmjs.
 - Run with tools uses a new provider-neutral tool loop (`packages/agent/src/tool-loop.ts`).
 
 ### Removed

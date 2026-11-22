@@ -32,7 +32,7 @@ bun run ps -- call moveSection --params '{"rootId":"support-triage","sectionId":
 
 `ps call <command> --params JSON` runs any command from `ps capabilities` with its JSON parameters.
 
-With the npm package, use `bunx @salir-se/prompt-studio-cli <command>` instead of `bun run ps --`.
+With the npm package, use `bunx @salir/prompt-studio-cli <command>` instead of `bun run ps --`.
 
 ## Several tabs
 

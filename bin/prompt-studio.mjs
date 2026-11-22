@@ -1,6 +1,6 @@
 #!/usr/bin/env bun
 /**
- * Launcher for the Prompt Studio server inside the `@salir-se/prompt-studio` npm package
+ * Launcher for the Prompt Studio server inside the `@salir/prompt-studio` npm package
  * (ADR-204 amendment 2026-09-15). Checked in as `.mjs` and copied verbatim to
  * `bin/prompt-studio.js` by scripts/build-npm-package.ts — it imports the bundled
  * `../server/main.js`, so it only runs inside the assembled package, never from this repo.
@@ -33,7 +33,7 @@ STUDIO_ALLOWED_ORIGINS, STUDIO_MANIFEST_PATH, ZAI_API_KEY (optional /verify
 review), STUDIO_VERIFY_BUDGET, STUDIO_CONTROL_TOKEN. Explicit environment
 always wins over the flags' defaults above.
 
-Once it is up: bunx @salir-se/prompt-studio-cli open`;
+Once it is up: bunx @salir/prompt-studio-cli open`;
 
 function parseFlags(argv) {
   const flags = {};

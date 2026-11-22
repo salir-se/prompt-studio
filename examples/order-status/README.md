@@ -4,7 +4,7 @@ The finished project from the course [Prompt Studio: zero to hero](../../docs/gu
 folder in Prompt Studio to see where the course ends:
 
 ```bash
-bunx @salir-se/prompt-studio --repo examples/order-status
+bunx @salir/prompt-studio --repo examples/order-status
 ```
 
 - `prompts/order-status.md` — the prompt: mission, rules, tool use, examples, output format and the customer

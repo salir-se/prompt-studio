@@ -1,5 +1,5 @@
 {
-  "name": "@salir-se/prompt-studio-workspace",
+  "name": "@salir/prompt-studio-workspace",
   "version": "1.2.0",
   "type": "module",
   "private": true,

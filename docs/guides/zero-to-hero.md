@@ -27,7 +27,7 @@ The finished project is in [`examples/order-status`](../../examples/order-status
 
 ## Before you start
 
-1. Install Prompt Studio (app, `bunx @salir-se/prompt-studio`, or Docker; see the [README](../../README.md#install)).
+1. Install Prompt Studio (app, `bunx @salir/prompt-studio`, or Docker; see the [README](../../README.md#install)).
 2. Connect your agent to the MCP server ([docs/mcp.md](../mcp.md#set-up)).
 3. Have a model for **Run**: an API key for Anthropic, OpenAI, OpenRouter or Z.ai, or any OpenAI-compatible endpoint.
 4. Copy the starting project and make it a Git repository:
