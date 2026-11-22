@@ -8,6 +8,7 @@ import {
 import { describe, expect, it } from 'vitest';
 import projectJson from '../../examples/order-status/.prompt-studio/project.json';
 import orderStatusFile from '../../examples/order-status/prompts/order-status.md?raw';
+import { workflowProblems } from '../design/design-scope';
 import { validateProjectDefinitions } from './project-definitions';
 import { readWorkspacePrompt } from './workspace-document';
 
@@ -25,6 +26,13 @@ describe('examples/order-status', () => {
     expect(loaded).not.toBeNull();
     expect(validatePromptDesign(loaded!.design, loaded!.text)).toEqual([]);
     expect(parsePromptTree({ key: 'order-status', text: loaded!.text }).diagnostics).toEqual([]);
+  });
+
+  it('has workflows that Mermaid can render, so the course can save them through set_design', async () => {
+    // Given: the major workflow and every sub-prompt workflow of the finished design
+    // When: each one is checked the way Save and set_design check it
+    // Then: none fails (a node id such as `call` is a Mermaid keyword and breaks the diagram)
+    expect(await workflowProblems(loaded!.design)).toEqual([]);
   });
 
   it('keeps one design per tagged section, in reading order', () => {
