@@ -1,0 +1,103 @@
+/*
+ * Horizontal timeline rail (D-082): the vertical rail of outreach-layout.css laid out as a row, for a pane edge with
+ * no side room. Each rule only swaps an axis. Every selector starts with the nav and its orientation, so it outranks
+ * the vertical rule it overrides whatever order the two stylesheets load in; the vertical rail is untouched.
+ */
+@media (min-width: 1100px) {
+  /* A pane with a horizontal rail stacks the rail below its viewport instead of beside it. */
+  .outreach-three-column [data-outreach-pane='detail']:has(> [data-timeline-navigator][data-orientation='horizontal']) {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) auto;
+    column-gap: 0;
+  }
+
+  .timeline-navigator[data-orientation='horizontal'] {
+    grid-column: 1;
+    grid-row: 2;
+    align-self: auto;
+    justify-self: center;
+    flex-direction: row;
+    margin-block: 0.25rem;
+    padding-block: 0;
+    padding-inline: 0.5rem;
+    max-height: none;
+    max-width: min(16rem, 60dvw);
+  }
+
+  .timeline-navigator[data-orientation='horizontal'] .timeline-navigator-marks {
+    flex-direction: row;
+    min-width: 0;
+  }
+
+  .timeline-navigator[data-orientation='horizontal'] .timeline-navigator-strip {
+    flex-direction: row;
+  }
+
+  /* The indicator is a vertical bar over the active column; the rail sets its `left`. */
+  .timeline-navigator[data-orientation='horizontal'] .timeline-navigator-indicator {
+    inset-block: 0;
+    inset-inline: auto;
+    width: 2px;
+    height: 1.25rem;
+    margin-block: auto;
+    margin-inline: calc(0.25rem - 1px) 0;
+  }
+
+  /* One 0.5rem x 2rem target per destination; the 2px tick is a vertical line centered inside it. */
+  .timeline-navigator[data-orientation='horizontal'] .timeline-navigator-mark {
+    width: 0.5rem;
+    height: 2rem;
+  }
+
+  .timeline-navigator[data-orientation='horizontal'] .timeline-navigator-mark::before {
+    width: 2px;
+    height: 0.625rem;
+  }
+
+  .timeline-navigator[data-orientation='horizontal'] .timeline-navigator-mark[data-kind='section']::before {
+    width: 2px;
+    height: 1rem;
+  }
+
+  .timeline-navigator[data-orientation='horizontal'] .timeline-navigator-mark[data-kind='boundary']::before {
+    height: 0.375rem;
+  }
+
+  .timeline-navigator[data-orientation='horizontal']:not([data-animate])
+    .timeline-navigator-mark:not([data-active]):hover::before {
+    height: 1rem;
+  }
+
+  .timeline-navigator[data-orientation='horizontal']:not([data-animate])
+    .timeline-navigator-mark[data-kind='section']:not([data-active]):hover::before {
+    height: 1.25rem;
+  }
+
+  .timeline-navigator[data-orientation='horizontal'] .timeline-navigator-mark[data-active]::before {
+    height: 1.25rem;
+  }
+
+  .timeline-navigator[data-orientation='horizontal'][data-animate] .timeline-navigator-mark[data-near='0']::before {
+    transform: scaleY(1.5);
+  }
+
+  .timeline-navigator[data-orientation='horizontal'][data-animate] .timeline-navigator-mark[data-near='1']::before {
+    transform: scaleY(1.2);
+  }
+
+  /* While pressed the arrow icon moves 2px the way it points: left for Up, right for Down. */
+  [data-animate] .timeline-navigator-arrow button[data-pressed][data-direction='up'][data-axis='x'] svg {
+    transform: translateX(-2px);
+  }
+
+  [data-animate] .timeline-navigator-arrow button[data-pressed][data-direction='down'][data-axis='x'] svg {
+    transform: translateX(2px);
+  }
+}
+
+/* A static rail grows a hovered tick's height, as the vertical one grows its width. */
+@media (min-width: 1100px) and (prefers-reduced-motion: no-preference) {
+  .timeline-navigator[data-orientation='horizontal']:not([data-animate]) .timeline-navigator-mark::before {
+    transition-property: height;
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "schemaVersion": 1,
+  "name": "starter",
+  "contentRoots": ["prompts", "skills"],
+  "skillsRoot": "skills",
+  "exportRoot": "prompts",
+  "catalog": {
+    "source": "explicit",
+    "documents": [
+      {
+        "id": "greeting",
+        "title": "Greeting",
+        "group": "prompts",
+        "source": { "kind": "file", "path": "prompts/greeting.md" }
+      },
+      {
+        "id": "release-notes",
+        "title": "Release notes",
+        "group": "prompts",
+        "source": { "kind": "file", "path": "prompts/release-notes.md" }
+      },
+      {
+        "id": "support-triage",
+        "title": "Support triage",
+        "group": "prompts",
+        "source": { "kind": "file", "path": "prompts/support-triage.md" }
+      },
+      {
+        "id": "plain-language",
+        "title": "Plain language",
+        "group": "skills",
+        "source": { "kind": "file", "path": "skills/plain-language/SKILL.md" }
+      }
+    ]
+  },
+  "baselines": [
+    {
+      "id": "repository",
+      "label": "Your prompts",
+      "description": "The prompts in this repository.",
+      "positioning": "shipped",
+      "source": { "kind": "shipped" }
+    }
+  ]
+}

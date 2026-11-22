@@ -1,0 +1,408 @@
+/* Studio's base surface rules stay local; the graph package keeps its default semantic palette elsewhere. */
+.studio {
+  --studio-shadow: 0 1px 2px #00000006, 0 8px 24px #00000005;
+  --studio-grid: color-mix(in oklch, var(--foreground) 9%, transparent);
+}
+.studio-mark {
+  display: inline-grid;
+  grid-template-columns: repeat(2, 7px);
+  gap: 3px;
+  flex-shrink: 0;
+  padding: 5px;
+  color: var(--foreground);
+}
+.studio-mark > span {
+  width: 7px;
+  height: 7px;
+  border: 1.5px solid currentColor;
+  border-radius: 2px;
+}
+.studio-mark > span:first-child,
+.studio-mark > span:last-child {
+  background: currentColor;
+}
+.studio-brand {
+  white-space: nowrap;
+  letter-spacing: -0.04em;
+}
+.studio-project-commands {
+  box-shadow: 0 1px 0 color-mix(in oklch, var(--foreground) 3%, transparent);
+}
+.studio-topbar [data-slot='button'] {
+  border-radius: 7px;
+}
+.studio-view-tabs {
+  gap: 3px;
+  padding: 4px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--muted);
+}
+.studio-view-tabs > [data-slot='button'] {
+  gap: 7px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted-foreground);
+}
+.studio-view-tabs > [data-slot='button'][aria-pressed='true'] {
+  background: var(--primary);
+  color: var(--primary-foreground);
+  box-shadow: 0 1px 3px #0002;
+}
+.studio-explorer,
+.studio-sidebar,
+.studio-explorer-drawer {
+  background: var(--sidebar);
+}
+.studio-sidebar button[data-testid^='prompt-root-'] {
+  min-height: 40px;
+  border-radius: 8px;
+}
+.studio-sidebar [role='treeitem'] {
+  min-height: 34px;
+  border-radius: 6px;
+}
+.studio-sidebar [role='treeitem'][aria-selected='true'] {
+  box-shadow: inset 2px 0 0 var(--foreground);
+}
+.studio-writer > [data-slot='tabs'] > div:first-child {
+  background: var(--background);
+}
+@media (min-width: 768px) and (max-height: 899px) {
+  .studio-writer > [data-slot='tabs'] > div:first-child,
+  .studio-writer > footer {
+    padding-block: 4px;
+  }
+}
+.studio-composing-hint-inline {
+  display: none;
+}
+@media (min-width: 768px) and (max-height: 899px) {
+  .studio-composing-hint-inline {
+    display: block;
+  }
+  .studio-writing-sheet {
+    margin-block: 4px;
+  }
+  .studio-composing-hint {
+    display: none;
+  }
+}
+.studio-writing-sheet {
+  --prompt-editor-padding-inline: 30px;
+}
+.studio-writing-sheet,
+.studio-document-preview {
+  width: calc(100% - 2rem);
+  max-width: 1120px;
+  margin-inline: auto;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--card);
+  box-shadow: var(--studio-shadow);
+}
+/* Both overlay layers must share every text metric, or selection and caret drift. */
+.studio-writing-sheet :is([data-testid='highlighted-prompt-text-backdrop'], textarea) {
+  padding: 26px 30px;
+  font-size: 14px;
+  line-height: 1.85;
+  letter-spacing: 0;
+}
+@media (min-width: 768px) and (max-height: 899px) {
+  .studio-writing-sheet :is([data-testid='highlighted-prompt-text-backdrop'], textarea) {
+    padding-block: 12px;
+  }
+}
+.studio-writing-sheet textarea {
+  border-color: transparent;
+  border-radius: 12px;
+}
+.studio-writing-sheet:focus-within {
+  border-color: var(--ring);
+  box-shadow:
+    0 0 0 3px color-mix(in oklch, var(--foreground) 5%, transparent),
+    var(--studio-shadow);
+}
+.studio-document-preview {
+  width: 100%;
+  min-height: 100%;
+  padding: 32px 40px;
+}
+.studio-document-preview :is(h1, h2, h3) {
+  letter-spacing: -0.035em;
+}
+.studio-document-preview h2 {
+  margin-block: 1.4em 0.6em;
+  font-size: 1.4rem;
+}
+.studio [data-token-kind] {
+  border-radius: 3px;
+  background: var(--muted);
+  color: var(--foreground);
+}
+.studio [data-token-kind='tool'] {
+  background: transparent;
+  text-decoration: underline;
+  text-decoration-color: var(--muted-foreground);
+  text-underline-offset: 3px;
+}
+.studio [data-token-kind='tag'] {
+  background: transparent;
+  color: var(--muted-foreground);
+}
+.studio [data-token-kind='unknown-variable'] {
+  text-decoration: underline wavy var(--destructive);
+  text-underline-offset: 3px;
+}
+.studio [data-testid='prompt-graph-canvas'] {
+  background: var(--background);
+}
+/* Fitted canvas buttons shrink below target size; the inspector keeps editing at screen scale. */
+.studio
+  [data-testid='prompt-graph-canvas'][data-zoomed-out]
+  [data-testid='fragment-node'][data-collapsed='false']
+  button {
+  display: none;
+}
+.studio-graph-help {
+  display: none;
+}
+.studio-graph-area:has([data-zoomed-out]) .studio-graph-help {
+  display: block;
+}
+@media (width < 768px) {
+  .studio-graph-help {
+    display: block;
+  }
+  .studio .react-flow__node [data-testid='fragment-node'][data-collapsed='false'] button {
+    display: none;
+  }
+}
+.studio .react-flow__background-pattern circle {
+  fill: var(--studio-grid);
+}
+.studio [data-testid='fragment-node'] {
+  box-shadow: var(--studio-shadow);
+}
+.studio [data-testid='fragment-node']:not([data-verification-state='invalid']) {
+  border-color: var(--border);
+}
+.studio [data-testid='fragment-node'][data-selected='true'] {
+  outline: 1px solid var(--foreground);
+  outline-offset: 3px;
+}
+.studio [data-testid='fragment-node'] [data-slot='badge'] {
+  border-color: var(--border);
+  background: var(--muted);
+  color: var(--foreground);
+}
+.studio [data-testid='fragment-node'] [aria-label='Variables'] > li,
+.studio [data-testid='fragment-node'] [aria-label='Tools'] > li {
+  background: var(--muted);
+  color: var(--foreground);
+}
+.studio [data-testid='label-chip'] {
+  border-color: var(--border);
+  background: var(--card);
+  color: var(--foreground);
+  box-shadow: 0 2px 6px #00000006;
+}
+.studio [data-testid='label-chip'][data-kind='root'] {
+  border-color: var(--primary);
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+.studio [data-testid='label-chip'][data-kind='variable'] {
+  font-family: var(--font-mono);
+}
+.studio [data-testid='label-chip'][data-kind='tool'] {
+  border-radius: 999px;
+}
+.studio [data-testid='label-chip'][data-kind='file'] {
+  border-style: dashed;
+}
+.studio .react-flow__controls {
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: var(--studio-shadow);
+}
+.studio .react-flow__controls-button {
+  border-color: var(--border);
+  background: var(--card);
+  fill: var(--foreground);
+}
+.studio .react-flow__controls-button:hover {
+  background: var(--muted);
+}
+.studio [data-studio-panels] > aside {
+  box-shadow: -12px 0 40px #0000000a;
+}
+.studio [data-studio-panels] > aside > header {
+  min-height: 76px;
+  padding: 18px 24px;
+  background: var(--card);
+}
+.studio [data-studio-panels] > aside > header h2 {
+  font-size: 18px;
+  letter-spacing: -0.035em;
+}
+.studio [data-testid='verification-node'] {
+  border-left: 3px solid var(--foreground);
+  background: var(--muted);
+}
+.studio [data-testid='automatic-finding'],
+.studio [data-testid='semantic-finding'] {
+  box-shadow: 0 1px 3px #00000004;
+}
+.studio-adoption-dialog [data-slot='dialog-title'],
+.studio-pattern-dialog [data-slot='dialog-title'] {
+  font-size: 20px;
+  letter-spacing: -0.035em;
+}
+.studio-adoption-dialog [aria-label='Source'] {
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--background);
+}
+/* Preserve Mermaid's own diagram contrast while removing its default violet palette. */
+.studio [data-testid='mermaid-diagram'] svg {
+  filter: grayscale(1);
+}
+.dark .studio [data-testid='mermaid-diagram'] svg {
+  filter: grayscale(1) invert(1);
+}
+.studio-empty > .studio-mark {
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+.studio :where(button, [role='treeitem']) {
+  transition:
+    background-color 140ms ease,
+    border-color 140ms ease,
+    box-shadow 140ms ease;
+}
+@media (width >= 640px) {
+  .studio-writing-sheet {
+    width: calc(100% - 3rem);
+  }
+}
+@media (width < 768px) {
+  .studio-writing-sheet {
+    --prompt-editor-padding-inline: 16px;
+  }
+  .studio-document-commands > div {
+    max-width: 100%;
+    width: 100%;
+  }
+  .studio-document-commands > div:last-child {
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .studio-writing-sheet :is([data-testid='highlighted-prompt-text-backdrop'], textarea) {
+    padding: 18px 16px;
+    font-size: 16px;
+    line-height: 1.7;
+  }
+  .studio-document-preview {
+    padding: 20px;
+  }
+  .studio [data-studio-panels] > aside > header {
+    padding: 16px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .studio :where(button, [role='treeitem']) {
+    transition: none;
+  }
+}
+/* D-070: the shortcut tip is a Sonner toast. Sonner injects its stylesheet at runtime, after this file, so each
+   override carries one more attribute than Sonner's own selector. The tip uses the studio's card tokens in both
+   themes; its keys and actions wrap beneath the label, and the close button is a 32 px top-right target. */
+.studio-shortcut-education [data-sonner-toaster][data-sonner-theme] {
+  z-index: 70;
+  pointer-events: auto;
+  --normal-bg: var(--card);
+  --normal-border: var(--border);
+  --normal-text: var(--card-foreground, var(--foreground));
+}
+.studio-shortcut-education [data-sonner-toast][data-styled='true'][data-mounted] {
+  flex-wrap: wrap;
+}
+.studio-shortcut-education [data-sonner-toast][data-styled='true'] [data-content][data-content] {
+  flex-basis: 100%;
+  padding-inline-end: 24px;
+}
+.studio-shortcut-education [data-sonner-toast][data-styled='true'] [data-close-button][data-close-button] {
+  left: auto;
+  right: 4px;
+  top: 4px;
+  transform: none;
+  width: 32px;
+  height: 32px;
+  border: 0;
+}
+
+/* A desktop document workspace: navigation stays compact, the authored document carries the visual weight. */
+.studio-project-commands {
+  padding-block: 8px;
+}
+.studio-document-commands {
+  padding-block: 8px;
+}
+.studio-writer > [data-slot='tabs'] > div:first-child {
+  padding-block: 10px;
+}
+.studio-feedback {
+  max-height: 112px;
+  overflow-y: auto;
+}
+.studio-feedback > div + div {
+  border-top: 1px solid var(--border);
+}
+@media (min-width: 768px) {
+  .studio-view-tabs .studio-toolbar-button {
+    width: auto;
+    padding-inline: 12px;
+  }
+  .studio-view-tabs .studio-toolbar-button > .sr-only {
+    position: static;
+    width: auto;
+    height: auto;
+    margin: 0;
+    overflow: visible;
+    clip: auto;
+    clip-path: none;
+    white-space: nowrap;
+  }
+  body:has(.studio) [data-testid='fragment-edit-dialog'] {
+    width: min(960px, calc(100vw - 64px));
+    max-width: min(960px, calc(100vw - 64px));
+  }
+}
+@media (width < 768px) {
+  .studio-project-commands,
+  .studio-document-commands {
+    padding-block: 4px;
+    row-gap: 4px;
+  }
+  .studio-writer > [data-slot='tabs'] > div:first-child {
+    padding-block: 4px;
+  }
+  .studio-writer .studio-writing-sheet {
+    margin-block: 8px;
+  }
+  .studio-editor-key-hint {
+    display: none;
+  }
+  .studio-writer > footer {
+    padding-block: 6px;
+    gap: 4px;
+  }
+  .studio-feedback [data-testid='import-success-banner'] {
+    padding-block: 4px;
+  }
+}

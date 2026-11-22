@@ -1,0 +1,1 @@
+Greet {{customer_name}} in one friendly sentence, thank them for contacting {{company_name}}, and say that a person from the support team will reply within one business day. Do not promise anything else.

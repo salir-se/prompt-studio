@@ -1,0 +1,68 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*.*.*']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    uses: ./.github/workflows/ci.yml
+    with:
+      ref: ${{ github.sha }}
+
+  publish:
+    needs: verify
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v5
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: .bun-version
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+      - run: bun install --frozen-lockfile
+      - name: Check that the tag matches package.json
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          test "$(jq -r .version package.json)" = "$version" || { echo "Tag $GITHUB_REF_NAME does not match package.json"; exit 1; }
+          echo "VERSION=$version" >> "$GITHUB_ENV"
+      - name: Build the editor
+        run: bun run build
+      - name: Compile the binaries
+        run: |
+          mkdir -p release
+          for target in darwin-arm64:macos-arm64 darwin-x64:macos-x64 linux-x64:linux-x64 windows-x64:windows-x64.exe; do
+            bun build --compile --target="bun-${target%%:*}" src/release/main.ts \
+              --asset dist --asset src --outfile "release/prompt-studio-${target##*:}"
+          done
+      - name: Write latest.json
+        run: bun src/release/release-assets.ts "$VERSION" release
+      - name: Create the GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          notes="$(awk -v v="$VERSION" '$0 ~ "^## \\[" v "\\]" {f=1; next} /^## \[/ {f=0} f' CHANGELOG.md)"
+          gh release create "$GITHUB_REF_NAME" release/* --title "Prompt Studio $VERSION" --notes "${notes:-See CHANGELOG.md}"
+      - name: Build the npm package
+        run: bun run build:npm-package -- --version "$VERSION"
+      - name: Smoke-test the npm package under Node
+        run: bun run smoke:npm-package
+      - name: Publish to npm
+        if: ${{ env.NODE_AUTH_TOKEN != '' }}
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        working-directory: .output/prompt-studio-npm/package
+        run: npm publish --provenance --access public

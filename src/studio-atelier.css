@@ -1,0 +1,155 @@
+/* Atelier: an editorial document workspace with neutral surfaces. Color is reserved for feedback. Local to Studio; source editor text metrics stay paired. */
+.studio {
+  --background: #f2f2f2;
+  --foreground: #292929;
+  --card: #fdfdfd;
+  --card-foreground: #292929;
+  --popover: #fdfdfd;
+  --popover-foreground: #292929;
+  --muted: #e8e8e8;
+  --muted-foreground: #606060;
+  --accent: #e5e5e5;
+  --accent-foreground: #292929;
+  --primary: #282828;
+  --primary-foreground: #fdfdfd;
+  --secondary: #ededed;
+  --secondary-foreground: #292929;
+  --border: #d5d5d5;
+  --input: #7d7d7d;
+  --ring: #282828;
+  --sidebar: #252525;
+  --sidebar-foreground: #ededed;
+  --sidebar-accent: #3d3d3d;
+  --sidebar-accent-foreground: #fdfdfd;
+}
+.dark .studio {
+  --background: #1b1b1b;
+  --foreground: #ededed;
+  --card: #242424;
+  --card-foreground: #ededed;
+  --popover: #242424;
+  --popover-foreground: #ededed;
+  --muted: #303030;
+  --muted-foreground: #b9b9b9;
+  --accent: #3a3a3a;
+  --accent-foreground: #ededed;
+  --primary: #cccccc;
+  --primary-foreground: #252525;
+  --secondary: #353535;
+  --secondary-foreground: #ededed;
+  --border: #4c4c4c;
+  --input: #8c8c8c;
+  --ring: #cccccc;
+  --sidebar: #181818;
+}
+.studio .studio-brand {
+  font:
+    600 25px / 1.2 Georgia,
+    serif;
+  letter-spacing: -0.055em;
+}
+.studio .studio-mark {
+  color: var(--primary);
+  transform: rotate(-8deg);
+}
+.studio .studio-project-commands {
+  padding-block: 12px;
+  background: var(--card);
+}
+.studio .studio-document-commands {
+  background: var(--card);
+}
+.studio .studio-writer {
+  background: radial-gradient(ellipse at 90% 5%, #00000008, transparent 65%), var(--background);
+}
+.studio .studio-writer h2 {
+  font:
+    400 32px / 1.18 Georgia,
+    serif;
+  letter-spacing: -0.035em;
+}
+.studio .studio-writer > [data-slot='tabs'] > div:first-child {
+  background: transparent;
+  padding-block: 18px;
+}
+.studio .studio-writing-sheet {
+  max-width: 1040px;
+  border-radius: 3px 16px 16px 3px;
+  border-left: 4px solid var(--primary);
+  box-shadow:
+    0 2px 3px #00000008,
+    0 12px 36px #00000012;
+}
+.studio .studio-explorer,
+.studio.studio-explorer-drawer {
+  width: 248px;
+  border-right: 0;
+  --foreground: #ededed;
+  --muted-foreground: #bdbdbd;
+  --card: #252525;
+  --background: #252525;
+  --border: #525252;
+  --muted: #383838;
+  --primary: #e5e5e5;
+  --primary-foreground: #252525;
+  --accent: #414141;
+  --accent-foreground: #fdfdfd;
+  --input: #929292;
+  --ring: #cccccc;
+  color: var(--foreground);
+}
+.studio .studio-sidebar {
+  background: transparent;
+}
+.studio .studio-sidebar [role='treeitem'][aria-selected='true'] {
+  box-shadow: inset 3px 0 #cccccc;
+}
+.studio [data-studio-panels] > aside {
+  border-radius: 20px 0 0 20px;
+  box-shadow: -20px 0 80px #00000025;
+}
+.studio :is([data-studio-panels] > aside > header h2, [data-slot='dialog-title']) {
+  font:
+    400 28px / 1.2 Georgia,
+    serif;
+  letter-spacing: -0.035em;
+}
+.studio :is([data-slot='dialog-content'], fieldset),
+.studio[data-slot='dialog-content'] {
+  border-radius: 16px;
+}
+.studio [data-slot='dialog-content'],
+.studio[data-slot='dialog-content'] {
+  box-shadow: 0 30px 100px #00000035;
+}
+.studio [data-slot='button'] {
+  border-radius: 8px;
+}
+.studio [data-slot='button'][data-variant='default'] {
+  box-shadow: 0 2px 0 #0002;
+}
+@media (max-width: 767px) {
+  .studio .studio-brand {
+    font-size: 16px;
+    margin-right: 0;
+    gap: 6px;
+  }
+  .studio .studio-project-commands {
+    padding-block: 4px;
+  }
+  .studio .studio-writer h2 {
+    font-size: 22px;
+  }
+  .studio .studio-writer > [data-slot='tabs'] > div:first-child {
+    padding-block: 4px;
+  }
+}
+
+@media (min-width: 768px) and (max-height: 899px) {
+  .studio .studio-writer > [data-slot='tabs'] > div:first-child {
+    padding-block: 8px;
+  }
+  .studio .studio-writer h2 {
+    font-size: 27px;
+  }
+}

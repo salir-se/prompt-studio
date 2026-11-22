@@ -1,0 +1,74 @@
+/*
+ * Salir overrides for the Crepe `frame` theme (ADR-096) — scoped under the
+ * MarkdownEditor wrapper so they ride the same lazy chunk as the theme CSS
+ * they correct. Two jobs:
+ *
+ * 1. THEME: Crepe hardcodes a light palette (white editor on a dark console)
+ *    and a serif/Noto font stack. Remap its custom properties onto the host
+ *    app's shadcn tokens so the editor follows light/dark mode and the app
+ *    font automatically.
+ * 2. DENSITY: the stock `.ProseMirror { padding: 60px 120px }` + 42px serif
+ *    headings are document-page metrics — on a phone they leave a column a
+ *    few characters wide (the "Te/st" bug). Use compact form-field metrics
+ *    with a 16px base (≥16px also prevents iOS zoom-on-focus) and tighter
+ *    paddings under 640px.
+ */
+
+.salir-markdown-editor {
+  border: 1px solid var(--border);
+  border-radius: var(--radius, 0.5rem);
+  background: var(--background);
+  overflow: hidden;
+}
+
+.salir-markdown-editor .milkdown {
+  --crepe-color-background: var(--background);
+  --crepe-color-on-background: var(--foreground);
+  --crepe-color-surface: var(--popover);
+  --crepe-color-surface-low: var(--muted);
+  --crepe-color-on-surface: var(--popover-foreground);
+  --crepe-color-on-surface-variant: var(--muted-foreground);
+  --crepe-color-outline: var(--border);
+  --crepe-color-primary: var(--primary);
+  --crepe-color-secondary: var(--secondary);
+  --crepe-color-on-secondary: var(--secondary-foreground);
+  --crepe-color-inverse: var(--foreground);
+  --crepe-color-on-inverse: var(--background);
+  --crepe-color-hover: var(--accent);
+  --crepe-color-selected: var(--accent);
+  --crepe-color-inline-area: var(--muted);
+  --crepe-color-error: var(--destructive);
+
+  --crepe-font-title: var(--font-sans, ui-sans-serif, system-ui, sans-serif);
+  --crepe-font-default: var(--font-sans, ui-sans-serif, system-ui, sans-serif);
+  --crepe-font-code: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+}
+
+.salir-markdown-editor .milkdown .ProseMirror {
+  padding: 0.75rem 1rem;
+  min-height: var(--salir-editor-min-height, 10rem);
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+/* Compact, form-field heading scale instead of the 42px document scale. */
+.salir-markdown-editor .milkdown .ProseMirror h1 {
+  font-size: 1.5rem;
+}
+.salir-markdown-editor .milkdown .ProseMirror h2 {
+  font-size: 1.25rem;
+}
+.salir-markdown-editor .milkdown .ProseMirror h3 {
+  font-size: 1.125rem;
+}
+.salir-markdown-editor .milkdown .ProseMirror h4,
+.salir-markdown-editor .milkdown .ProseMirror h5,
+.salir-markdown-editor .milkdown .ProseMirror h6 {
+  font-size: 1rem;
+}
+
+@media (max-width: 640px) {
+  .salir-markdown-editor .milkdown .ProseMirror {
+    padding: 0.625rem 0.75rem;
+  }
+}

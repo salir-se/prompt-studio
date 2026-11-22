@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "name": "prompts",
+  "contentRoots": ["prompts", "skills"],
+  "skillsRoot": "skills",
+  "exportRoot": "prompts",
+  "catalog": {
+    "source": "explicit",
+    "documents": []
+  },
+  "baselines": [
+    {
+      "id": "repository",
+      "label": "Your prompts",
+      "description": "The prompts in this repository.",
+      "positioning": "shipped",
+      "source": {
+        "kind": "shipped"
+      }
+    }
+  ]
+}

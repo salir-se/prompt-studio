@@ -1,0 +1,23 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Outcome: the Visual editor keeps real Salir texts > records which built-in prompts open in Visual (exact) and which open in Raw 1`] = `
+{
+  "prompts": {
+    "action_plan_template": "equivalent",
+    "closer": "equivalent",
+    "critic": "equivalent",
+    "critic_inbound": "equivalent",
+    "cv_extractor": "equivalent",
+    "discovery_protocol": "equivalent",
+    "gap_analysis_template": "equivalent",
+    "icp": "equivalent",
+    "offer_extractor": "equivalent",
+    "persona": "equivalent",
+    "proposal_template": "equivalent",
+    "researcher": "equivalent",
+    "scheduler_email_check": "equivalent",
+    "scheduler_pipeline_review": "equivalent",
+    "scout": "equivalent",
+  },
+}
+`;

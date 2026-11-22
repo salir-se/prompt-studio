@@ -1,0 +1,29 @@
+{
+  "name": "@prompt-studio/types",
+  "version": "1.0.0",
+  "type": "module",
+  "private": true,
+  "sideEffects": false,
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "emit-schemas": "bun run scripts/emit-json-schemas.ts"
+  },
+  "dependencies": {
+    "@prompt-studio/observability": "workspace:*",
+    "arktype": "^2.2.0"
+  },
+  "devDependencies": {
+    "vitest": "5.0.5"
+  },
+  "exports": {
+    ".": "./src/index.ts",
+    "./lazy-type": "./src/lazy-type.ts",
+    "./schemas/critic-scoring": "./src/schemas/critic-scoring.ts",
+    "./schemas/outreach-language": "./src/schemas/outreach-language.ts",
+    "./schemas/*.json": "./schemas/*.json"
+  },
+  "license": "Apache-2.0"
+}

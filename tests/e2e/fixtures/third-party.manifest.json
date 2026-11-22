@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "name": "third-party-vendor",
+  "contentRoots": ["tests/e2e/fixtures/vendor"],
+  "skillsRoot": "tests/e2e/fixtures/vendor",
+  "exportRoot": "tests/e2e/fixtures/vendor",
+  "catalog": {
+    "source": "explicit",
+    "documents": [
+      {
+        "id": "greeter",
+        "title": "Greeter",
+        "group": "prompts",
+        "source": { "kind": "file", "path": "tests/e2e/fixtures/vendor/greeter.md" }
+      }
+    ]
+  },
+  "baselines": [
+    {
+      "id": "default",
+      "label": "Vendor default",
+      "description": "The vendor prompt set, shipped with the fixture.",
+      "positioning": "shipped",
+      "source": { "kind": "shipped" }
+    }
+  ]
+}

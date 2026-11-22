@@ -1,0 +1,265 @@
+/*
+ * Timeline rail (D-081, D-082): the control's own look and motion, shared by every host. A host places the rail
+ * (grid column, vertical centring) and turns it on from 1100px wide; below that the rail stays hidden and the
+ * host's native scrollbar shows. Horizontal orientation: timeline-navigator-horizontal.css.
+ */
+.timeline-navigator {
+  display: none;
+}
+
+@media (min-width: 1100px) {
+  .timeline-navigator {
+    align-self: center;
+    grid-column: 2;
+    grid-row: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-block: 0.5rem;
+    border-radius: 999px;
+    background: var(--card);
+    max-height: min(16rem, 60dvh);
+  }
+
+  .timeline-navigator-marks {
+    position: relative;
+    touch-action: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  /* Holds the window's marks; slides as one piece when the window moves. Positioned so marks measure from it. */
+  .timeline-navigator-strip {
+    position: relative;
+    display: flex;
+    flex-shrink: 0;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  /* The animated active tick: one bar over the active row (top set by the rail), outside the strip. */
+  .timeline-navigator-indicator {
+    position: absolute;
+    inset-inline: 0;
+    width: 1.25rem;
+    height: 2px;
+    margin-block-start: calc(0.25rem - 1px);
+    margin-inline: auto;
+    border-radius: 999px;
+    background: var(--primary);
+    pointer-events: none;
+  }
+
+  [data-animate] .timeline-navigator-mark[data-active]::before {
+    opacity: 0;
+  }
+
+  /* Held breath: the indicator dims once while a jump holds its mark. */
+  [data-animate][data-held] .timeline-navigator-indicator {
+    animation: timeline-navigator-held 400ms ease-in-out;
+    animation-iteration-count: 1;
+  }
+
+  /* One 2rem x 0.5rem target per destination; the 2px tick is drawn centered inside it. */
+  .timeline-navigator-mark {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 0.5rem;
+    padding: 0;
+    border: 0;
+    border-radius: 2px;
+    background: transparent;
+    cursor: pointer;
+  }
+
+  .timeline-navigator-mark::before {
+    content: '';
+    width: 0.625rem;
+    height: 2px;
+    border-radius: 999px;
+    background: var(--muted-foreground);
+    transition: width 120ms ease-out;
+  }
+
+  /* A Contact header is longer and a shade stronger than an event tick; the active one is primary. */
+  .timeline-navigator-mark[data-kind='section']::before {
+    width: 1rem;
+    height: 2px;
+    background: color-mix(in oklch, var(--foreground) 55%, var(--muted-foreground));
+  }
+
+  .timeline-navigator-mark[data-kind='boundary']::before {
+    width: 0.375rem;
+  }
+
+  .timeline-navigator-mark[data-kind='reply']::before {
+    background: color-mix(in oklch, var(--primary) 55%, var(--muted-foreground));
+  }
+
+  /* Hover widens the tick only on a static rail; an animated rail scales the ticks by pointer proximity below. */
+  :where(.timeline-navigator:not([data-animate])) .timeline-navigator-mark:hover::before {
+    width: 1rem;
+  }
+
+  :where(.timeline-navigator:not([data-animate])) .timeline-navigator-mark[data-kind='section']:hover::before {
+    width: 1.25rem;
+  }
+
+  /* Pointer proximity: `data-near` is "0" on the hovered row and "1" on its neighbours. Transform only. */
+  [data-animate] .timeline-navigator-mark::before {
+    transform-origin: center;
+    transition: transform 120ms ease-out;
+  }
+
+  [data-animate] .timeline-navigator-mark[data-near='0']::before {
+    transform: scaleX(1.5);
+  }
+
+  [data-animate] .timeline-navigator-mark[data-near='1']::before {
+    transform: scaleX(1.2);
+  }
+
+  .timeline-navigator-mark[data-active]::before {
+    width: 1.25rem;
+    background: var(--primary);
+  }
+
+  .timeline-navigator-mark:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 1px;
+  }
+
+  .timeline-navigator-arrow {
+    height: 1.75rem;
+    flex-shrink: 0;
+  }
+
+  /* At its end of the page an arrow gives way to a dead-end sign; the two icons sit on the same grid cell. */
+  .timeline-navigator-arrow-icons {
+    display: grid;
+    place-items: center;
+  }
+
+  .timeline-navigator-arrow-icons > svg {
+    grid-area: 1 / 1;
+  }
+
+  .timeline-navigator-arrow button [data-dead-end] {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+
+  .timeline-navigator-arrow button[data-end] [data-arrow] {
+    opacity: 0;
+  }
+
+  .timeline-navigator-arrow button[data-end] [data-dead-end] {
+    opacity: 1;
+    transform: none;
+  }
+
+  /* The swap cross-fades. While pressed the arrow icon moves 2px the way the arrow points. */
+  [data-animate] .timeline-navigator-arrow button {
+    transition: opacity 140ms ease-out;
+  }
+
+  [data-animate] .timeline-navigator-arrow button [data-arrow] {
+    transition: opacity 140ms ease-out;
+  }
+
+  [data-animate] .timeline-navigator-arrow button [data-dead-end] {
+    transition:
+      opacity 140ms ease-out,
+      transform 140ms ease-out;
+  }
+
+  /* Press-and-drag on the marks scrolls the page; the rail says so with the cursor. */
+  .timeline-navigator[data-dragging],
+  .timeline-navigator[data-dragging] .timeline-navigator-mark {
+    cursor: grabbing;
+    user-select: none;
+  }
+
+  [data-animate] .timeline-navigator-arrow button[data-pressed] svg {
+    transition: transform 100ms ease-out;
+  }
+
+  [data-animate] .timeline-navigator-arrow button[data-pressed][data-direction='up'] svg {
+    transform: translateY(-2px);
+  }
+
+  [data-animate] .timeline-navigator-arrow button[data-pressed][data-direction='down'] svg {
+    transform: translateY(2px);
+  }
+
+  /* Landing flash: the destination a jump landed on gets a primary outline that fades out (JS removes the attribute). */
+  [data-timeline-landed] {
+    position: relative;
+  }
+
+  [data-timeline-landed]::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    outline: 2px solid var(--primary);
+    outline-offset: -2px;
+    pointer-events: none;
+    animation: timeline-navigator-landed 600ms ease-out both;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .timeline-navigator-mark::before {
+      transition: none;
+    }
+
+    [data-animate][data-held] .timeline-navigator-indicator {
+      animation: none;
+    }
+
+    /* The one effect that keeps a fade under reduced motion. */
+    [data-timeline-landed]::after {
+      animation-duration: 80ms;
+    }
+  }
+
+  @keyframes timeline-navigator-landed {
+    from {
+      opacity: 1;
+    }
+
+    to {
+      opacity: 0;
+    }
+  }
+
+  @keyframes timeline-navigator-held {
+    50% {
+      opacity: 0.7;
+    }
+  }
+}
+
+@media (forced-colors: active) {
+  [data-timeline-navigation-mark]::before {
+    background: ButtonText;
+  }
+
+  [data-timeline-navigation-mark][data-active]::before {
+    background: Highlight;
+  }
+
+  .timeline-navigator-indicator {
+    background: Highlight;
+  }
+
+  .timeline-navigator::before {
+    display: none;
+  }
+}

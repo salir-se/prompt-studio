@@ -1,0 +1,38 @@
+name: Bug report
+description: Something in Prompt Studio does not work as documented.
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What you did, what you expected, and what happened instead.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open a project with …
+        2. Choose …
+        3. See …
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: Output of `prompt-studio --help`, or the npm package version.
+  - type: dropdown
+    id: install
+    attributes:
+      label: How do you run it?
+      options: [Downloaded binary, npx / bunx, From source]
+  - type: input
+    id: os
+    attributes:
+      label: Operating system and browser
+  - type: markdown
+    attributes:
+      value: Do not paste API keys, tokens, or private prompt content. Report security problems through SECURITY.md.

@@ -1,0 +1,23 @@
+[install]
+linker = "isolated"
+publicHoistPattern = ["@types/*"]
+
+# `bun lint` is the linter and `bun fmt` the formatter. `any` is allowed at SDK boundaries; unused code warns.
+[lint]
+ignorePatterns = ["**/dist/**", "**/node_modules/**"]
+
+[lint.rules]
+"@typescript-eslint/no-explicit-any" = "off"
+"@typescript-eslint/no-unused-vars" = "warn"
+
+[[lint.overrides]]
+files = ["**/*.stories.tsx"]
+[lint.overrides.rules]
+"react-hooks/rules-of-hooks" = "off"
+
+[fmt]
+printWidth = 120
+singleQuote = true
+# Never reformat tagged template literals: prompt text is Markdown, and reformatting changes what a model reads.
+embeddedLanguageFormatting = "off"
+ignorePatterns = ["**/*.md", "**/*.yml", "**/*.yaml", "**/*.toml", "**/*.html", "**/dist/**", "scripts/private-content-fingerprints.json"]

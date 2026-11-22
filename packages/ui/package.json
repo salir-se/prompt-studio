@@ -1,0 +1,88 @@
+{
+  "name": "@prompt-studio/ui",
+  "version": "1.0.0",
+  "type": "module",
+  "private": true,
+  "exports": {
+    "./text": "./src/text.ts",
+    "./utils": "./src/utils.ts",
+    "./motion": "./src/motion.ts",
+    "./use-reduced-motion": "./src/use-reduced-motion.ts",
+    "./timeline-rail/TimelineNavigator": "./src/timeline-rail/TimelineNavigator.tsx",
+    "./timeline-rail/copy": "./src/timeline-rail/copy.ts",
+    "./timeline-rail/timeline-rail-axis": "./src/timeline-rail/timeline-rail-axis.ts",
+    "./timeline-rail/timeline-rail-landing": "./src/timeline-rail/timeline-rail-landing.ts",
+    "./timeline-rail/timeline-rail-window": "./src/timeline-rail/timeline-rail-window.ts",
+    "./timeline-rail/useTimelineRailMotion": "./src/timeline-rail/useTimelineRailMotion.ts",
+    "./timeline-rail/useTimelineRailPointer": "./src/timeline-rail/useTimelineRailPointer.ts",
+    "./*": "./src/*.tsx"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "test:hook": "vitest run --coverage.enabled=false --reporter=dot src/confirm-dialog.test.tsx -t \"renders children when wrapped|resolves true when the confirm button is clicked|renders title and fires onConfirm\"",
+    "test:watch": "vitest"
+  },
+  "shadcn": {
+    "$schema": "https://ui.shadcn.com/schema.json",
+    "style": "radix-nova",
+    "rsc": false,
+    "tsx": true,
+    "tailwind": {
+      "config": "",
+      "css": "../../www/app.salir.se/src/index.css",
+      "baseColor": "neutral",
+      "cssVariables": true,
+      "prefix": ""
+    },
+    "iconLibrary": "lucide",
+    "rtl": false,
+    "aliases": {
+      "components": "@prompt-studio/ui",
+      "utils": "@prompt-studio/ui/utils",
+      "ui": "@prompt-studio/ui",
+      "lib": "@prompt-studio/ui",
+      "hooks": "@/hooks"
+    },
+    "menuColor": "default",
+    "menuAccent": "subtle",
+    "registries": {}
+  },
+  "dependencies": {
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "tailwind-merge": "^3.5.0"
+  },
+  "devDependencies": {
+    "@radix-ui/react-dialog": "1.1.15",
+    "@prompt-studio/observability": "workspace:*",
+    "@prompt-studio/types": "workspace:*",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "happy-dom": "^20.8.9",
+    "lucide-react": "^1.7.0",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "vitest": "5.0.5"
+  },
+  "peerDependencies": {
+    "@base-ui/react": "*",
+    "@radix-ui/react-accordion": "*",
+    "@radix-ui/react-collapsible": "*",
+    "@radix-ui/react-dialog": "*",
+    "@radix-ui/react-dropdown-menu": "*",
+    "@radix-ui/react-label": "*",
+    "@radix-ui/react-scroll-area": "*",
+    "@radix-ui/react-select": "*",
+    "@radix-ui/react-separator": "*",
+    "@radix-ui/react-slot": "*",
+    "@radix-ui/react-tabs": "*",
+    "@radix-ui/react-tooltip": "*",
+    "lucide-react": "*",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "license": "Apache-2.0"
+}
