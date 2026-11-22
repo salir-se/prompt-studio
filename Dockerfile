@@ -7,7 +7,7 @@
 #
 # Then open http://127.0.0.1:5273 and choose Open project with the path /repo.
 
-FROM oven/bun:1.4.4 AS builder
+FROM oven/bun:1.4.5 AS builder
 WORKDIR /src
 COPY package.json bun.lock bunfig.toml ./
 # bun applies patchedDependencies during install, so the patch must exist first.
@@ -24,7 +24,7 @@ RUN bun run build \
  && cp src/manifest/default.manifest.json /manifest/manifest.json \
  && cp LICENSE NOTICE /out/
 
-FROM oven/bun:1.4.4-alpine AS runtime
+FROM oven/bun:1.4.5-alpine AS runtime
 WORKDIR /app
 COPY --from=builder --chown=bun:bun /out/ ./
 # The server's baked-manifest location (src/manifest/resolve-manifest.ts BAKED_MANIFEST_PATH).
