@@ -1,5 +1,7 @@
 // @module-tag integration
 // outcome-flags: this standalone MCP server has no release-flag reads.
+import { createServer as createNetServer } from 'node:net';
+import type { AddressInfo } from 'node:net';
 import { afterEach, beforeEach, expect, it } from 'vitest';
 import {
   FakeBrowser,
@@ -36,6 +38,18 @@ async function tab(handler?: Parameters<typeof FakeBrowser.connect>[1]['handler'
   return browser;
 }
 
+/** A loopback port with no listener: bound to find a free number, then released. */
+function freeClosedPort(): Promise<number> {
+  return new Promise((resolve, reject) => {
+    const probe = createNetServer();
+    probe.once('error', reject);
+    probe.listen(0, '127.0.0.1', () => {
+      const { port } = probe.address() as AddressInfo;
+      probe.close(() => resolve(port));
+    });
+  });
+}
+
 it('returns the tab result over the shared connection, and fails readably with no Studio', async () => {
   // Given: one tab that echoes the document id
   await tab((action, params) => ({ action, rootId: (params as { rootId?: string }).rootId }));
@@ -46,8 +60,12 @@ it('returns the tab result over the shared connection, and fails readably with n
   });
   expect(await connection.listTargets()).toHaveLength(1);
   // Then: both answered, and a call to a port with no Studio fails readably
-  const elsewhere = new StudioConnection({ port: 1, token: TEST_TOKEN });
-  await expect(elsewhere.call('listDocuments', {})).rejects.toThrow(/Cannot reach the studio on port 1/);
+  // A port that was free a moment ago refuses at once on every machine; port 1 can hang on CI runners.
+  const closedPort = await freeClosedPort();
+  const elsewhere = new StudioConnection({ port: closedPort, token: TEST_TOKEN });
+  await expect(elsewhere.call('listDocuments', {})).rejects.toThrow(
+    new RegExp(`Cannot reach the studio on port ${closedPort}`),
+  );
 });
 
 it('turns gateway refusals into readable errors with the candidates to choose from', async () => {
