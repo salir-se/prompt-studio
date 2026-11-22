@@ -9,11 +9,15 @@ import { describe, expect, it } from 'vitest';
  * a scene with no shot list fails the recording step later, far from the change that caused it.
  */
 const DIR = import.meta.dirname;
+// Argo reads a demo's manifest from `demos/<demo>.scenes.json`; the plans stay next to this test.
+const DEMOS = path.resolve(DIR, '..');
 const OVERLAY_TYPES = ['lower-third', 'headline-card', 'callout', 'image-card', 'arrow'];
-const episodes = readdirSync(DIR)
-  .filter((name) => /^ep\d-[a-z0-9-]+\.scenes\.json$/.test(name))
+const episodes = readdirSync(DEMOS)
+  .filter((name) => /^course-ep\d-[a-z0-9-]+\.scenes\.json$/.test(name))
   .sort()
-  .map((name) => name.replace('.scenes.json', ''));
+  .map((name) => name.replace('course-', '').replace('.scenes.json', ''));
+const manifest = (episode: string) =>
+  JSON.parse(readFileSync(path.join(DEMOS, `course-${episode}.scenes.json`), 'utf8')) as Scene[];
 
 interface Scene {
   scene: string;
@@ -31,7 +35,7 @@ describe('course episode scripts', () => {
 
   it.each(episodes)('%s: every scene has narration, a voice direction, a valid overlay and a shot list', (episode) => {
     // Given: the episode manifest and its plan
-    const scenes = JSON.parse(readFileSync(path.join(DIR, `${episode}.scenes.json`), 'utf8')) as Scene[];
+    const scenes = manifest(episode);
     const plan = readFileSync(path.join(DIR, `${episode}.plan.md`), 'utf8');
     // When: each scene is inspected
     const ids = scenes.map((scene) => scene.scene);
@@ -51,7 +55,7 @@ describe('course episode scripts', () => {
   it('keeps each episode near the 3–4 minute target at 140 words per minute', () => {
     // Given: all manifests
     for (const episode of episodes) {
-      const scenes = JSON.parse(readFileSync(path.join(DIR, `${episode}.scenes.json`), 'utf8')) as Scene[];
+      const scenes = manifest(episode);
       // When: narration words are counted
       const words = scenes.reduce((sum, scene) => sum + scene.text.split(/\s+/).filter(Boolean).length, 0);
       // Then: narration alone stays between 2.5 and 4.2 minutes

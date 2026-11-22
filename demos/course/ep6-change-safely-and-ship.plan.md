@@ -1,6 +1,6 @@
 # Episode 6 — Change safely and ship: shot list
 
-Narration: `ep6-change-safely-and-ship.scenes.json`. Shared setup, fake model and tool names: [README](README.md).
+Narration: [`course-ep6-change-safely-and-ship.scenes.json`](../course-ep6-change-safely-and-ship.scenes.json). Shared setup, fake model and tool names: [README](README.md).
 
 - **Goal on screen:** tag `v1`; the agent shortens the rules and drops the data rule; Compare with a judge catches
   the injection regression; the agent restores the rule; the person saves a version and opens the Share form.

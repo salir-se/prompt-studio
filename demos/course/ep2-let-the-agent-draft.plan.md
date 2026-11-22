@@ -1,6 +1,6 @@
 # Episode 2 — Let the agent draft: shot list
 
-Narration: `ep2-let-the-agent-draft.scenes.json`. Shared setup, fake model and tool names: [README](README.md).
+Narration: [`course-ep2-let-the-agent-draft.scenes.json`](../course-ep2-let-the-agent-draft.scenes.json). Shared setup, fake model and tool names: [README](README.md).
 
 - **Goal on screen:** the agent drafts the Rules, Tool use, Output format and Customer message sections; the person
   reviews them in Graph, gets one section-level edit from the agent, makes one hand edit, and reads History.

@@ -1,6 +1,6 @@
 # Episode 1 — Start from the outcome: shot list
 
-Narration: `ep1-start-from-the-outcome.scenes.json`. Shared setup, fake model and tool names: [README](README.md).
+Narration: [`course-ep1-start-from-the-outcome.scenes.json`](../course-ep1-start-from-the-outcome.scenes.json). Shared setup, fake model and tool names: [README](README.md).
 
 - **Goal on screen:** an empty project gets the `order-status` prompt with a mission, the `lookup_order` tool, the
   `customer_message` variable, and JSON Schema input and output contracts.
@@ -83,7 +83,7 @@ Values used below:
 ## agent-sees-contract
 
 - **Agent panel:**
-  1. `cmd`: `claude mcp add prompt-studio -- bunx --package @salir-se/prompt-studio prompt-studio-mcp --stdio`
+  1. `cmd`: `claude mcp add prompt-studio -- bunx --package @salir/prompt-studio prompt-studio-mcp --stdio`
   2. `you`: `Read the order-status prompt in Prompt Studio and summarize its contract.`
   3. `tool`: `list_documents`
   4. `tool`: `open_document order-status`

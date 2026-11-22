@@ -1,6 +1,6 @@
 # Episode 5 — Verify and test: shot list
 
-Narration: `ep5-verify-and-test.scenes.json`. Shared setup, fake model and tool names: [README](README.md).
+Narration: [`course-ep5-verify-and-test.scenes.json`](../course-ep5-verify-and-test.scenes.json). Shared setup, fake model and tool names: [README](README.md).
 
 - **Goal on screen:** automatic findings read; one AI criterion added by hand; checks proposed by the agent and
   accepted by the person; an AI review finding fixed by adding the Examples section; a seven-case, edge-case-first

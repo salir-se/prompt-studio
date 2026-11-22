@@ -4,13 +4,48 @@ Scripts for a six-episode video course and its compiled cut. Each episode builds
 step further, from the empty project in `examples/order-status-start` to the finished project in
 `examples/order-status`. The written version of the course is [`docs/guides/zero-to-hero.md`](../../docs/guides/zero-to-hero.md).
 
-Nothing here is recorded yet. A later step writes one Argo demo per episode (`ep<N>-<slug>.demo.ts`) from these files.
+Each episode is one Argo demo in `demos/` (Argo reads a demo and its manifest from that folder):
 
 | File | Purpose |
 |---|---|
-| `ep<N>-<slug>.scenes.json` | Argo scenes manifest: `scene` id, `text` narration, `elevenLabsDirection` audio tag, optional `overlay`. |
+| `../course-ep<N>-<slug>.demo.ts` | The recording: off-camera starting state, then the episode's plan on camera. |
+| `../course-ep<N>-<slug>.scenes.json` | Argo scenes manifest: `scene` id, `text` narration, `elevenLabsDirection` audio tag, optional `overlay`. |
 | `ep<N>-<slug>.plan.md` | Shot list per scene: agent panel lines, MCP calls and arguments, clicks, expected result, fake-model output. |
+| `course-session.ts`, `course-replay.ts`, `course-checks.ts`, `course-texts.ts` | Shared setup, the off-camera replays of each episode's end state, the checks and test cases of episode 5, and the prompt texts derived from `examples/order-status`. |
 | `compiled.chapters.md` | YouTube chapters for the compiled cut, and the outro checklist card. |
+
+## Record an episode
+
+```bash
+bun run build                                                         # once, and after app changes
+bun run demo:take -- course-ep1-start-from-the-outcome                # local Kokoro voice, free
+ARGO_TTS=elevenlabs bun run demo:take -- course-ep1-start-from-the-outcome  # publish render (ELEVENLABS_API_KEY)
+```
+
+`demo:take` starts a fresh server whose temporary profile folder also holds the project (`order-status`), records,
+and removes both. Output: `.output/argo-videos/<demo>/<local|youtube>/` (mp4, srt, vtt, meta.json). The ElevenLabs
+render reads the per-scene directions from the demo's own manifest.
+
+## Where the recordings differ from the plans
+
+The plans were written before the tools were released. The recordings follow the real UI and tools:
+
+- **Readiness asks for an example on each JSON contract.** Switching to structured JSON adds a placeholder example
+  that fails the new schema, so episode 1 verifies one input sample and one output sample (the "ask for the order
+  ID" reply) before saving. Episode 4 replaces that output example with the three planned ones.
+- **Section ids are the tags** (`rules`, `tool_use`), and `set_design` changes one scope per call: episode 3 saves the
+  five sub-prompt designs with five calls; episode 4 sets the output examples on the whole prompt and on Output format.
+- **Sub-prompt Design opens from Explorer → Actions → Design sub-prompt** (the Design button opens the whole prompt).
+- **The workflow preview is an image**, so episode 3 zooms the camera onto it instead of pointing at labels.
+- **Eleven proposals instead of nine.** `propose_check` takes one rule per call, so the three Output format field
+  checks are three proposals. The person accepts them scope by scope in Verify → Checks & criteria.
+- **Examples are added with `read_document` + `edit_document`.** `insert_section` after `tool_use` inserts a bare
+  `<examples>` block under the "## Tool use" heading, so Graph titles it "Tool use"; the fallback writes the heading
+  too. The agent then saves the Examples sub-prompt design (`set_design`).
+- **Test cases override the shared tool responses** to set their own `lookup_order` mock; the two cases without a mock
+  use the shared setup, where the model never calls the tool.
+- **Share stops at Connect GitHub.** No sandbox repository is connected; episode 6's narration says the recording
+  stops there.
 
 Narration runs at about 140 words per minute. `course-scenes.test.ts` checks that every manifest parses, that each
 scene has narration, and that each plan has a section for every scene.
@@ -22,26 +57,19 @@ scene has narration, and that each plan has a section for every scene.
   Episode 1 says this once in narration; the panel header says "scripted session" in every episode.
 - **One project, carried forward.** Each episode starts from the end state of the previous one. A take prepares that
   state off camera by copying `examples/order-status-start`, running `git init`, and replaying the MCP calls and UI
-  steps of the earlier episodes before `narration.startRecording`. Episode 6 may instead start from a copy of
-  `examples/order-status` with its Examples section restored and the tag `v1` created (see its plan).
-- **Local and deterministic.** The model is a loopback OpenAI-compatible server (extend
-  `demos/helpers/tutorial-model.ts`); the order service is a loopback MCP server. The narration says both are local.
-  No API key, no network.
+  steps of the earlier episodes before `narration.startRecording` (`course-replay.ts`).
+- **Local and deterministic.** The model is a loopback OpenAI-compatible server (`demos/helpers/course-model.ts`);
+  the order service is a loopback MCP server (`demos/helpers/demo-orders-mcp.ts`). The narration says both are
+  local. No API key, no network.
 - **Fresh profile.** Start the app with `demos/serve.ts` (temporary `HOME`) so every take opens on the welcome screen.
 
 ## MCP tools used
 
-Shipped tools: `list_documents`, `open_document`, `read_document`, `edit_document`, `history`, `list_targets`.
-
-Episodes 2–6 also use the MCP section, design and verification tools that are built in parallel (PR-train car 7).
-This course names them as specified for that work: `listSections`, `readSection`, `editSection`, `insertSection`,
-`getDesign`, `setDesign`, `verifySample`, `listWorkflowPatterns`, `applyWorkflowPattern`, `listChecks`, `runChecks`,
-`getFindings`, `proposeCheck`, `getProposalStatus`. The arguments in the plans show the intended shape. Before
-recording, check the released names and arguments in [`docs/mcp.md`](../../docs/mcp.md) and adjust the calls (for
-example, `get_design` instead of `getDesign`); the narration does not name the tools, so it stays valid.
-
-If a tool is not available when you record, use the fallback that each plan gives: `read_document` and
-`edit_document` with the whole text for a section edit, or the equivalent clicks in the editor for design and checks.
+`list_documents`, `open_document`, `read_document`, `edit_document`, `list_sections`, `read_section`,
+`edit_section`, `get_design`, `set_design`, `verify_sample`, `list_workflow_patterns`, `apply_workflow_pattern`,
+`list_checks`, `propose_check`, `get_proposal_status`, `run_checks` and `get_findings` (names and arguments:
+[`docs/mcp.md`](../../docs/mcp.md)). The plans use the camelCase names they were written with; the agent panel shows
+the real names. The narration does not name the tools.
 
 ## Fake model
 
