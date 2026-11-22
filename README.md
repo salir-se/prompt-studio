@@ -162,6 +162,23 @@ A project is any folder, usually a Git repository, that contains `prompts/<id>.m
 while Prompt Studio shows each change live; then the prompt is run, tested, versioned and shared. The video is recorded
 from `demos/getting-started.demo.ts`; see [Recording tutorials](docs/development.md#recording-tutorials).
 
+### Course: zero to hero (18 min)
+
+[![Watch: design a prompt from zero to hero with your AI agent (18 min)](https://img.youtube.com/vi/Wfuwg8L2vXw/hqdefault.jpg)](https://youtu.be/Wfuwg8L2vXw)
+
+**[Watch the full course on YouTube](https://youtu.be/Wfuwg8L2vXw).** Your agent builds a tool-using order-status assistant while you review
+contracts, architecture, checks and tests in Prompt Studio. The video has chapters; the written version is
+[Prompt Studio: zero to hero](docs/guides/zero-to-hero.md). The episodes are also separate videos:
+
+| Part | Episode | Length |
+|---|---|---|
+| 1 | [Start from the outcome](https://youtu.be/FxqKqw__3KU) | 3:39 |
+| 2 | [Let the agent draft](https://youtu.be/X-SMLdHQ2-4) | 2:50 |
+| 3 | [Choose an architecture](https://youtu.be/a9xJqebkBg8) | 2:44 |
+| 4 | [Contracts and tools](https://youtu.be/D2w-M0pL7V4) | 3:04 |
+| 5 | [Verify and test](https://youtu.be/qKq1ol9lagQ) | 3:20 |
+| 6 | [Change safely and ship](https://youtu.be/Wfuwg8L2vXw?t=936) | 2:39 |
+
 ## Documentation
 
 - [Use with your AI agent (MCP)](docs/mcp.md) — connect Claude Code, Codex, or any MCP client.
