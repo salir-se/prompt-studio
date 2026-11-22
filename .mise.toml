@@ -1,0 +1,17 @@
+# Maintainer secrets for releases. Contributors do not need any of this: without the age key mise skips decryption
+# (sops.strict = false) and every build, test and dev command works as usual.
+[settings]
+sops.age_key_file = ".secrets/mise-age.txt"
+sops.rops = false
+sops.strict = false
+
+[tools]
+# Decrypts .env.secrets.json; installed by `mise install`.
+sops = "3.13.3"
+
+[[env]]
+# sops + age encrypted; see docs/development.md "Maintainer secrets".
+_.file = [".env.secrets.json"]
+# bun publish reads NPM_CONFIG_TOKEN; expose the decrypted token under that name so `bun publish --otp=<code>` works
+# as-is. Empty without the age key.
+NPM_CONFIG_TOKEN = "{{ env.NPM_PUBLISH_TOKEN | default(value='') }}"

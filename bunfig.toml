@@ -20,4 +20,4 @@ printWidth = 120
 singleQuote = true
 # Never reformat tagged template literals: prompt text is Markdown, and reformatting changes what a model reads.
 embeddedLanguageFormatting = "off"
-ignorePatterns = ["**/*.md", "**/*.yml", "**/*.yaml", "**/*.toml", "**/*.html", "**/dist/**", "scripts/private-content-fingerprints.json"]
+ignorePatterns = ["**/*.md", "**/*.yml", "**/*.yaml", "**/*.toml", "**/*.html", "**/dist/**", "scripts/private-content-fingerprints.json", ".env.secrets.json"]
