@@ -28,6 +28,8 @@ browser storage, recovery snapshots, or exports.
 
 ## Install
 
+Prompt Studio ships three ways: a downloadable app, an npm package, and a Docker image.
+
 ### Download the app
 
 Download the binary for your computer from the
@@ -63,6 +65,20 @@ npx @salir-se/prompt-studio            # or: bunx @salir-se/prompt-studio
 
 Flags: `--repo <dir>` (default: current directory), `--port <n>` (default `5273`), `--host <addr>` (default
 `127.0.0.1`), `--manifest <file>`.
+
+### Run with Docker
+
+```bash
+cd path/to/your/prompt-project
+docker run --rm -p 127.0.0.1:5273:5273 \
+  -v "$PWD":/repo -v prompt-studio-data:/home/bun \
+  ghcr.io/salir-se/prompt-studio
+```
+
+Open http://127.0.0.1:5273. The mounted folder opens as the project. The `prompt-studio-data` volume keeps saved
+projects, versions, and run history between restarts. Always publish the port on `127.0.0.1` as shown: the page
+contains the per-launch access token, so a port published on every interface exposes your project to the network.
+Images are published for `linux/amd64` and `linux/arm64`, tagged with the release version and `latest`.
 
 ## Quick start
 

@@ -53,5 +53,13 @@ skip or a fallback do not count as that test.
 
 1. Update `CHANGELOG.md` and the version in `package.json`.
 2. Push a tag `vX.Y.Z`. The `release` workflow runs the checks, compiles the four binaries, writes
-   `latest.json` with SHA-256 checksums, creates the GitHub Release, and publishes the npm package with
-   provenance (when the `NPM_TOKEN` secret is set).
+   `latest.json` with SHA-256 checksums, creates the GitHub Release, pushes the multi-arch Docker image to
+   `ghcr.io/salir-se/prompt-studio` (`X.Y.Z` and `latest`), and publishes the npm package with provenance (when
+   the `NPM_TOKEN` secret is set).
+
+Build and try the image locally:
+
+```bash
+docker build -t prompt-studio:local .
+docker run --rm -p 127.0.0.1:5273:5273 -v "$PWD/examples/starter":/repo prompt-studio:local
+```
