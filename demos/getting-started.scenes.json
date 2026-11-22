@@ -1,0 +1,86 @@
+[
+  {
+    "scene": "welcome",
+    "text": "Prompt Studio is a visual prompt builder for AI agents. You keep working with your coding agent, like Claude Code or Codex. The agent writes prompts through Prompt Studio's MCP server, and you watch every change land here, live.",
+    "elevenLabsDirection": "[warm]",
+    "overlay": {
+      "type": "headline-card",
+      "kicker": "Open source · Apache-2.0",
+      "title": "See what your agent does to your prompts",
+      "body": "Agents compose through MCP. You review structure, logic and checks.",
+      "placement": "top-right",
+      "motion": "fade-in"
+    }
+  },
+  {
+    "scene": "connect",
+    "text": "Setup takes one command: register the MCP server with your agent. Then open your project in Prompt Studio. Any folder with a prompts directory works, and the editor uses an isolated copy, so your checkout stays untouched.",
+    "elevenLabsDirection": "[calm]",
+    "overlay": {
+      "type": "lower-third",
+      "text": "One command connects your agent",
+      "placement": "bottom-right",
+      "motion": "fade-in"
+    }
+  },
+  {
+    "scene": "agent-reads",
+    "text": "Now ask the agent to review the support triage prompt. It lists the documents, opens the prompt in your tab, and reads it. You see the same structure the agent sees: five sections, their order, and the variables they use.",
+    "elevenLabsDirection": "[calm]"
+  },
+  {
+    "scene": "agent-edits",
+    "text": "Ask for a change: an urgent level for security reports, and an examples section with one message per category. The agent edits through MCP, and the graph grows a new section while you watch.",
+    "elevenLabsDirection": "[focused]",
+    "overlay": {
+      "type": "callout",
+      "text": "Live: the agent's edit appears as a new section",
+      "placement": "top-right",
+      "motion": "fade-in"
+    }
+  },
+  {
+    "scene": "review",
+    "text": "This is where you add the judgment. Select the new section and read exactly what the agent wrote. History keeps every agent edit as a Git commit, so any change can be restored.",
+    "elevenLabsDirection": "[calm]"
+  },
+  {
+    "scene": "steer",
+    "text": "Then steer. Ask for a stricter output contract, with a short next step. The agent applies it, and you see the output section change, without leaving the visual view.",
+    "elevenLabsDirection": "[confident]"
+  },
+  {
+    "scene": "run",
+    "text": "Check the behaviour, not just the text. Run the prompt with your own model key. Here we use a local test model. The answer comes back as the JSON the contract asks for.",
+    "elevenLabsDirection": "[calm]",
+    "overlay": {
+      "type": "lower-third",
+      "text": "Bring your own model: OpenAI, Anthropic, OpenRouter, or any compatible API",
+      "placement": "bottom-right",
+      "motion": "fade-in"
+    }
+  },
+  {
+    "scene": "tests",
+    "text": "Save the cases you care about as a test suite and run it after every change. Each case passes or fails on simple checks, so a better prompt never quietly breaks an old one.",
+    "elevenLabsDirection": "[focused]"
+  },
+  {
+    "scene": "share",
+    "text": "When it is right, save a version and open a pull request from Share. Nothing leaves your computer until you publish.",
+    "elevenLabsDirection": "[calm]"
+  },
+  {
+    "scene": "outro",
+    "text": "Prompt Studio is free and open source. Install it as an app, an npm package, or a Docker image, and connect your agent today.",
+    "elevenLabsDirection": "[warm]",
+    "overlay": {
+      "type": "headline-card",
+      "kicker": "Free and open source",
+      "title": "github.com/salir-se/prompt-studio",
+      "body": "App · npm · Docker · MCP",
+      "placement": "center",
+      "motion": "fade-in"
+    }
+  }
+]
