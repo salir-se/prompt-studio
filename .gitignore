@@ -12,3 +12,7 @@ coverage/
 
 # Argo tutorial intermediates
 .argo/
+
+# Local secrets: the age private key that decrypts .env.secrets.json. Never commit.
+.secrets/
+!.env.secrets.json

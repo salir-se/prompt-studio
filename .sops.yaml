@@ -1,0 +1,5 @@
+# sops encryption rules. Only the age PUBLIC recipient is here; the private key lives in the gitignored
+# .secrets/mise-age.txt of maintainers who need to publish. Contributors do not need it.
+creation_rules:
+  - path_regex: \.env\.secrets\.json$
+    age: age14vsptrmj2w0fh8mqa0el7xgq9ej9cenkfxh7hr9lx0c5wpr0442quv8sxe

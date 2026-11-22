@@ -97,3 +97,30 @@ SCREENSHOTS_DIR=.output/shots bun run screenshots       # write elsewhere to com
 
 Runs are pixel-stable except the Git commit hashes shown in `evaluations-compare.png`. Open every image before
 committing it.
+
+## Maintainer secrets
+
+Release secrets are stored in `.env.secrets.json`, encrypted with [sops](https://github.com/getsops/sops) and
+[age](https://age-encryption.org/). The file in the repository holds only ciphertext; `.sops.yaml` names the age
+public recipient. Contributors do not need any of this: without the age key, mise skips decryption and every
+command works as usual.
+
+| Variable | Purpose |
+|---|---|
+| `NPM_PUBLISH_TOKEN` | npmjs.com token of the `salir-se` account (admin of the `salir` npm organization) for publishing `@salir/prompt-studio`. |
+
+To use the secrets, a maintainer:
+
+1. Installs [mise](https://mise.jdx.dev) and runs `mise trust && mise install` in the repository.
+2. Places the age private key at `.secrets/mise-age.txt` (gitignored; mode `0600`). Never commit it; the
+   content guard rejects any file containing an age secret key.
+3. Runs commands through mise, for example a pre-release publish (the npm account requires a one-time code):
+
+   ```bash
+   bun run build:npm-package -- --version 1.2.0-rc.1
+   cd .output/prompt-studio-npm/package
+   mise exec -- sh -c 'NPM_CONFIG_TOKEN="$NPM_PUBLISH_TOKEN" bun publish --tag next --otp=<code>'
+   ```
+
+Edit secrets with `mise exec -- sops edit .env.secrets.json`. CI does not read this file; the release workflow
+is moving to npm trusted publishing.
