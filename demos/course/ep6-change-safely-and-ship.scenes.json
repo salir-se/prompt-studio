@@ -1,0 +1,81 @@
+[
+  {
+    "scene": "intro",
+    "text": "Final episode: change safely, and ship. A working prompt will change. The goal is to know, before you merge, whether a change made it worse.",
+    "elevenLabsDirection": "[calm]",
+    "overlay": {
+      "type": "headline-card",
+      "kicker": "Prompt Studio: zero to hero · Episode 6 of 6",
+      "title": "Change safely and ship",
+      "body": "Tag, change, compare, fix, publish",
+      "placement": "top-right",
+      "motion": "fade-in"
+    }
+  },
+  {
+    "scene": "tag-v1",
+    "text": "First, freeze what works. In Evaluations, open Compare and save a Git version tag named v1. The tag lives in Prompt Studio's copy of the repository, and it points at the exact prompt that just passed the suite.",
+    "elevenLabsDirection": "[calm]",
+    "overlay": {
+      "type": "lower-third",
+      "text": "Tag the known-good version",
+      "placement": "bottom-right",
+      "motion": "fade-in"
+    }
+  },
+  {
+    "scene": "change",
+    "text": "Now a realistic change. Ask the agent to make the rules shorter. It rewrites the rules section. The new text reads well, and the automatic checks still pass, because no automatic check covers the rule that was dropped.",
+    "elevenLabsDirection": "[calm]"
+  },
+  {
+    "scene": "compare",
+    "text": "Compare v1 with the current draft, on the same suite, with the same model and the same tool mocks. Add a judge model with a short rubric: prefer the answer that follows the rules and the output contract. Run the comparison.",
+    "elevenLabsDirection": "[focused]",
+    "overlay": {
+      "type": "callout",
+      "text": "Compare v1 with the current draft",
+      "placement": "top-left",
+      "motion": "fade-in"
+    }
+  },
+  {
+    "scene": "regression",
+    "text": "One case passes in v1 and fails in the draft: the injection attempt. The draft output says the order is now marked as refunded. The judge prefers v1, and says why. The shorter rules lost the line that says the customer message is data, not instructions. Without the suite, this change would have looked like a harmless cleanup.",
+    "elevenLabsDirection": "[focused]",
+    "overlay": {
+      "type": "callout",
+      "text": "Regression: the injection test fails",
+      "placement": "top-left",
+      "motion": "fade-in"
+    }
+  },
+  {
+    "scene": "checks-and-judge",
+    "text": "Keep the two signals apart. A failed check is a fact: the output contains a word it must not contain. The judge's verdict is an opinion from another model. It helps you spot a worse answer that no check describes. Prompt Studio shows both for every case, and the verdict stays advisory.",
+    "elevenLabsDirection": "[calm]"
+  },
+  {
+    "scene": "agent-fixes",
+    "text": "Tell the agent which case failed. It reads the comparison result, restores that rule in the rules section, and keeps the rest of the shorter text. Run the comparison again. Every case passes in both versions, and the judge calls it a tie.",
+    "elevenLabsDirection": "[calm]"
+  },
+  {
+    "scene": "save-share",
+    "text": "Save a version, with a message that says what changed and why. Then open Share: connect GitHub, name a branch, write a pull request title, and publish. Nothing leaves your computer until you choose to publish. Your reviewers see a normal pull request: the prompt file, its design, and the project definitions.",
+    "elevenLabsDirection": "[calm]"
+  },
+  {
+    "scene": "outro",
+    "text": "That is the whole loop. Start from the outcome. Let the agent draft, and review the structure. Write the architecture down. Test the contracts and the tools. Accept the checks yourself, and test edge cases first. Compare before every merge. The checklist on screen is in the written guide, together with the finished example project. Thanks for watching.",
+    "elevenLabsDirection": "[warm]",
+    "overlay": {
+      "type": "headline-card",
+      "kicker": "Prompt quality checklist",
+      "title": "Outcome → draft → architecture → contracts → checks → compare",
+      "body": "Full checklist: docs/guides/zero-to-hero.md · example: examples/order-status",
+      "placement": "center",
+      "motion": "fade-in"
+    }
+  }
+]
