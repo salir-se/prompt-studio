@@ -22,7 +22,7 @@ describe('resolveConfig', () => {
     expect(config).toEqual({
       repoRoot: '/repo',
       staticDir: path.resolve(APP_ROOT, 'dist'),
-      host: '0.0.0.0',
+      host: '127.0.0.1',
       port: 5273,
       allowedOrigins: ['http://127.0.0.1:5273', 'http://localhost:5273'],
       zaiApiKey: undefined,
