@@ -19,21 +19,24 @@ import { runStandaloneServer } from '../server/main.js';
 
 const USAGE = `Usage: prompt-studio [--repo <dir>] [--port <n>] [--host <addr>] [--manifest <file>]
 
-Serves the Prompt Studio editor for the repository checkout you run it from
-(bridge roots: packages/prompts, packages/skills/skills, docs/prompts — or the
-manifest you point --manifest at). Read-only: the studio never writes to it.
+Starts the editor for local Git projects with prompts/<id>.md and optional
+skills/<name>/SKILL.md files. You can also create a project in the editor.
+Prompt Studio saves work in an isolated copy of the project.
 
-  --repo <dir>       Repository root to read (default: current directory)
+  --repo <dir>       Starting repository (default: current directory)
   --port <n>         Port to listen on (default: 5273; env STUDIO_PORT)
   --host <addr>      Bind address (default: 127.0.0.1; env STUDIO_HOST)
   --manifest <file>  Studio manifest override (env STUDIO_MANIFEST_PATH)
+  -h, --help         Print this help and exit
 
 Environment: STUDIO_REPO_ROOT, STUDIO_PORT, STUDIO_HOST, STUDIO_STATIC_DIR,
-STUDIO_ALLOWED_ORIGINS, STUDIO_MANIFEST_PATH, ZAI_API_KEY (optional /verify
-review), STUDIO_VERIFY_BUDGET, STUDIO_CONTROL_TOKEN. Explicit environment
-always wins over the flags' defaults above.
+STUDIO_ALLOWED_ORIGINS, STUDIO_MANIFEST_PATH, STUDIO_VERIFY_BUDGET,
+STUDIO_CONTROL_TOKEN. Explicit environment values override launcher flags.
 
-Once it is up: bunx @salir/prompt-studio-cli open`;
+Connect a model provider in Run Settings. ZAI_API_KEY optionally connects z.ai
+at startup, with ZAI_BASE_URL for a custom endpoint.
+
+Control the open editor with bunx --package @salir/prompt-studio prompt-studio-cli.`;
 
 function parseFlags(argv) {
   const flags = {};

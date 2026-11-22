@@ -44,6 +44,7 @@ All notable changes to this project are documented here. The format follows
 ### Fixed
 
 - Explorer lists skill documents under Skills in standalone projects and manifest-backed catalogs (#22).
+- The npm launcher help describes the current project layout, and `prompt-studio-mcp --help` works without a running editor (#29).
 - Graph finding badges now display a space between the count and its label (#20).
 - History kept only some commits when edits arrived faster than a commit finished (for example an agent's
   back-to-back edits): commits on both history providers now run one after another.

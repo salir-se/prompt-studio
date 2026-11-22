@@ -157,6 +157,7 @@ Flags: `--repo <dir>` (default: current directory), `--port <n>` (default `5273`
 
 The package also installs `prompt-studio-cli` (terminal control of the open editor) and `prompt-studio-mcp` (the
 MCP server for your agent, see [docs/mcp.md](docs/mcp.md)).
+Run `bunx @salir/prompt-studio --help` or `bunx --package @salir/prompt-studio prompt-studio-mcp --help` for usage.
 
 ### Run with Docker
 

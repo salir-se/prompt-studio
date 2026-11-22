@@ -27,7 +27,16 @@ export function studioPort(): number {
 }
 
 async function readTokenFile(port: string | number): Promise<string> {
-  return (await readFile(path.join(tmpdir(), `prompt-studio-control-${port}.token`), 'utf8')).trim();
+  try {
+    return (await readFile(path.join(tmpdir(), `prompt-studio-control-${port}.token`), 'utf8')).trim();
+  } catch (error) {
+    if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
+      throw new Error(
+        `No Prompt Studio control token found for port ${port}. Start Studio with \`bunx @salir/prompt-studio --port ${port}\`, or set PROMPT_STUDIO_CONTROL_TOKEN for an existing server.`,
+      );
+    }
+    throw error;
+  }
 }
 
 export interface CallContext {

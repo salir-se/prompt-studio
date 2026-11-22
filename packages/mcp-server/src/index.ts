@@ -6,6 +6,20 @@ import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/
 import { type CallContext, resolveContext, type StudioCaller, StudioConnection } from './client';
 import { LIST_TARGETS_COMMAND, toolExecutor, TOOLS } from './tools';
 
+const USAGE = `Usage: prompt-studio-mcp [--stdio] [--help]
+
+Connect an MCP client to the open Prompt Studio editor.
+
+  --stdio     Use stdio for a local MCP client (also MCP_TRANSPORT=stdio).
+  -h, --help  Print this help and exit.
+
+The default transport is Streamable HTTP at http://127.0.0.1:5274/mcp.
+Set PROMPT_STUDIO_MCP_HOST and PROMPT_STUDIO_MCP_PORT to change the listener.
+
+PROMPT_STUDIO_PORT identifies the editor port (default: 5273).
+Set PROMPT_STUDIO_CONTROL_TOKEN or use the per-launch token file in the system
+temporary directory. HTTP clients send that token as an Authorization bearer token.`;
+
 /**
  * The prompt-studio MCP server (task #20; ADR-236; docs/remote-control.md) — REMOTE/HTTP BY DEFAULT: a Streamable HTTP
  * endpoint (POST/GET/DELETE /mcp, stateless — every request is self-contained) so an LLM client
@@ -118,8 +132,13 @@ async function serveStdio(context: McpContext): Promise<void> {
 
 /** Starts the MCP server: stdio with `--stdio` or MCP_TRANSPORT=stdio, otherwise Streamable HTTP. */
 export async function runMcpServer(): Promise<void> {
+  const args = process.argv.slice(2);
+  if (args.includes('--help') || args.includes('-h')) {
+    console.log(USAGE);
+    return;
+  }
   const context = await resolveContext();
-  if (process.argv.includes('--stdio') || process.env.MCP_TRANSPORT === 'stdio') {
+  if (args.includes('--stdio') || process.env.MCP_TRANSPORT === 'stdio') {
     await serveStdio(context);
   } else {
     await serveHttp(context);

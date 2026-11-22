@@ -64,9 +64,13 @@ function freePort(): Promise<number> {
 }
 
 /** Spawns a short-lived process, captures stdout+stderr, resolves {exitCode, output}. */
-function runCapturing(command: string, args: readonly string[]): Promise<{ exitCode: number | null; output: string }> {
+function runCapturing(
+  command: string,
+  args: readonly string[],
+  env = process.env,
+): Promise<{ exitCode: number | null; output: string }> {
   return new Promise((resolve, reject) => {
-    const child = spawn(command, args, { stdio: ['ignore', 'pipe', 'pipe'] });
+    const child = spawn(command, args, { env, stdio: ['ignore', 'pipe', 'pipe'], timeout: 10_000 });
     let output = '';
     child.stdout.on('data', (chunk: Buffer) => (output += chunk.toString()));
     child.stderr.on('data', (chunk: Buffer) => (output += chunk.toString()));
@@ -115,9 +119,11 @@ async function main(): Promise<void> {
   const pkgDir = path.join(workDir, 'node_modules', '@salir', 'prompt-studio');
   const serverBin = path.join(pkgDir, 'bin', 'prompt-studio.js');
   const cliBin = path.join(pkgDir, 'bin', 'prompt-studio-cli.js');
+  const mcpBin = path.join(pkgDir, 'bin', 'prompt-studio-mcp.js');
   for (const required of [
     serverBin,
     cliBin,
+    mcpBin,
     path.join(pkgDir, 'server', 'main.js'),
     path.join(pkgDir, 'dist', 'index.html'),
   ]) {
@@ -207,6 +213,38 @@ async function main(): Promise<void> {
     if (exitCode !== 0) fail(`server exited with ${exitCode} on SIGTERM, expected 0`);
     clearTimeout(timedOut);
     console.log('[npm-smoke] graceful SIGTERM shutdown: ok');
+
+    // Both launchers must print help while no Studio is running on the configured port.
+    const helpEnv = { ...process.env, PROMPT_STUDIO_PORT: String(port), PROMPT_STUDIO_CONTROL_TOKEN: '' };
+    const [studioHelp, mcpHelp, missingToken] = await Promise.all([
+      runCapturing('bun', [serverBin, '--help'], helpEnv),
+      runCapturing('bun', [mcpBin, '--help'], helpEnv),
+      runCapturing('bun', [mcpBin, '--stdio'], helpEnv),
+    ]);
+    const problems: string[] = [];
+    if (
+      studioHelp.exitCode !== 0 ||
+      !studioHelp.output.includes('prompts/<id>.md') ||
+      !studioHelp.output.includes('skills/<name>/SKILL.md')
+    ) {
+      problems.push(`prompt-studio --help (exit ${studioHelp.exitCode}): ${studioHelp.output.trim()}`);
+    }
+    if (
+      mcpHelp.exitCode !== 0 ||
+      !mcpHelp.output.includes('--stdio') ||
+      !mcpHelp.output.includes('PROMPT_STUDIO_CONTROL_TOKEN')
+    ) {
+      problems.push(`prompt-studio-mcp --help (exit ${mcpHelp.exitCode}): ${mcpHelp.output.trim()}`);
+    }
+    if (
+      missingToken.exitCode !== 1 ||
+      !missingToken.output.includes(`No Prompt Studio control token found for port ${port}`) ||
+      missingToken.output.includes('ENOENT')
+    ) {
+      problems.push(`prompt-studio-mcp without a token (exit ${missingToken.exitCode}): ${missingToken.output.trim()}`);
+    }
+    if (problems.length > 0) throw new Error(`[npm-smoke] launcher checks failed:\n${problems.join('\n')}`);
+    console.log('[npm-smoke] both help commands and missing-token guidance: ok');
   } finally {
     clearTimeout(timedOut);
     if (server.exitCode === null && !server.killed) server.kill('SIGKILL');
