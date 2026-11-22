@@ -33,6 +33,8 @@ async function readTokenFile(port: string | number): Promise<string> {
 export interface CallContext {
   readonly port: number;
   readonly token: string;
+  /** How long to wait for the Studio to accept a connection; the client's default when omitted. */
+  readonly connectTimeoutMs?: number;
 }
 
 /** Resolves port + token once per server run (per the env/file rules in the module doc). */
@@ -110,14 +112,16 @@ export class StudioConnection implements StudioCaller {
   private async open(): Promise<ControlClient> {
     for (let attempt = 0; attempt < 2; attempt += 1) {
       if (this.client === null) {
-        const connecting = this.connect({ url: localControlUrl(this.context.port), token: this.context.token }).then(
-          (client) => {
-            client.onClose(() => {
-              if (this.client === connecting) this.client = null;
-            });
-            return client;
-          },
-        );
+        const connecting = this.connect({
+          url: localControlUrl(this.context.port),
+          token: this.context.token,
+          ...(this.context.connectTimeoutMs === undefined ? {} : { connectTimeoutMs: this.context.connectTimeoutMs }),
+        }).then((client) => {
+          client.onClose(() => {
+            if (this.client === connecting) this.client = null;
+          });
+          return client;
+        });
         connecting.catch(() => {
           if (this.client === connecting) this.client = null;
         });
