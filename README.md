@@ -120,8 +120,11 @@ A project is any folder, usually a Git repository, that contains `prompts/<id>.m
 
 ## Video tour
 
-A 2-minute tour of the agent workflow is recorded from `demos/getting-started.demo.ts`; see
-[Recording tutorials](docs/development.md#recording-tutorials).
+[![Watch: let your AI agent build prompts while you watch (2 min)](https://img.youtube.com/vi/YQs3bQgl55w/hqdefault.jpg)](https://www.youtube.com/watch?v=YQs3bQgl55w)
+
+**[Watch the 2-minute tour on YouTube](https://www.youtube.com/watch?v=YQs3bQgl55w).** An AI agent edits a prompt through MCP
+while Prompt Studio shows each change live; then the prompt is run, tested, versioned and shared. The video is recorded
+from `demos/getting-started.demo.ts`; see [Recording tutorials](docs/development.md#recording-tutorials).
 
 ## Documentation
 
