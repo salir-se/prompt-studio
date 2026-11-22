@@ -34,6 +34,10 @@ const sectionId = {
   minLength: 1,
   description: 'Section id, from listSections (for example "role" or "output-format").',
 } as const;
+const designScope = {
+  type: 'string',
+  description: 'A section id from listSections (or its xml tag). Leave it out for the whole prompt.',
+} as const;
 const commitMessage = { type: 'string', description: 'Commit message.' } as const;
 
 function command(
@@ -138,6 +142,51 @@ export const COMMAND_CATALOG: readonly CommandDescriptor[] = [
     'Remove a section with its sub-sections.',
     'document',
     onDocument(['sectionId'], { sectionId }),
+  ),
+  // Design contracts and workflow patterns (roadmap #7). Writes are checked like the Design panel's Save.
+  command(
+    'getDesign',
+    'Return the input contract, Mermaid workflow and output contract of the whole prompt or of one section.',
+    'none',
+    onDocument([], { sectionId: designScope }),
+  ),
+  command(
+    'setDesign',
+    'Change the input contract, workflow or output contract of the whole prompt or of one section, and save it.',
+    'document',
+    onDocument([], {
+      sectionId: designScope,
+      input: {
+        type: 'object',
+        description: '{ kind: "free-text", description } or { kind: "json", description, jsonSchema, examples }.',
+      },
+      workflow: { type: 'string', description: 'A Mermaid flowchart, for example "flowchart LR\n  A --> B".' },
+      output: {
+        type: 'object',
+        description:
+          '{ kind: "freeform" | "tool-call" | "json", description, … } — json needs jsonSchema and examples; tool-call needs requiredToolName.',
+      },
+    }),
+  ),
+  command(
+    'verifySample',
+    "Check a JSON sample against the scope's JSON output (or input) contract, like the Design panel's Verify sample.",
+    'none',
+    onDocument(['sample'], {
+      sectionId: designScope,
+      sample: { type: 'string', description: 'The JSON text to check, for example a model reply.' },
+      contract: { type: 'string', enum: ['output', 'input'], description: 'Default: output.' },
+    }),
+  ),
+  command('listWorkflowPatterns', "List the Design panel's workflow patterns (id, name, Mermaid graph).", 'none', none),
+  command(
+    'applyWorkflowPattern',
+    "Set the workflow of the whole prompt or of one section to a pattern's Mermaid graph and save it. Nothing runs.",
+    'document',
+    onDocument(['patternId'], {
+      sectionId: designScope,
+      patternId: { type: 'string', minLength: 1, description: 'Pattern id, from listWorkflowPatterns.' },
+    }),
   ),
 ];
 

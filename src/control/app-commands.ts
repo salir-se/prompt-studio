@@ -14,6 +14,7 @@ import type { CatalogRoot } from '../catalog/root-catalog';
 import type { HistoryProvider, ProjectRef } from '../vcs/history-provider';
 import { providerKeyFor } from '../vcs/provider-keys';
 import type { ControlHandler } from './control-channel';
+import { buildDesignCommands, type DesignCommandSurface } from './design-commands';
 import { buildSectionCommands, type SectionCommandSurface } from './section-commands';
 
 /** The App surface the commands need — implemented by the App with its live state/handlers. */
@@ -35,6 +36,8 @@ export interface AppCommandSurface {
   switchProject(projectId: string): boolean;
   /** Section-level editing of the open document (listSections, editSection, …). */
   readonly sections?: SectionCommandSurface;
+  /** Design contracts of the open prompt (getDesign, setDesign, verifySample, workflow patterns). */
+  readonly design?: DesignCommandSurface;
 }
 
 interface DocumentArgs {
@@ -75,6 +78,7 @@ export function browserStateOf(surface: AppCommandSurface): BrowserState {
 export function buildAppCommands(surface: AppCommandSurface): Record<string, ControlHandler> {
   return {
     ...(surface.sections === undefined ? {} : buildSectionCommands(surface.sections)),
+    ...(surface.design === undefined ? {} : buildDesignCommands(surface.design)),
     listDocuments: () =>
       surface.roots.map(({ id, title, loadability, toolNames }) => ({
         id,

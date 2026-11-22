@@ -55,6 +55,15 @@ describe('parseArgs', () => {
     expect(
       parseArgs(['call', 'moveSection', '--params', '{"rootId":"o","sectionId":"role","direction":"down"}']),
     ).toMatchObject({ command: 'moveSection', args: { rootId: 'o', sectionId: 'role', direction: 'down' } });
+    expect(parseArgs(['design', 'order-status', 'output'])).toMatchObject({
+      command: 'getDesign',
+      args: { rootId: 'order-status', sectionId: 'output' },
+    });
+    expect(parseArgs(['design', 'order-status'])).toMatchObject({
+      command: 'getDesign',
+      args: { rootId: 'order-status' },
+    });
+    expect(parseArgs(['patterns'])).toMatchObject({ command: 'listWorkflowPatterns', args: {} });
     expect(() => parseArgs(['section', 'order-status'])).toThrow('needs a section id');
     expect(() => parseArgs(['call', 'listSections', '--params', '[1]'])).toThrow('--params needs a JSON object');
     expect(

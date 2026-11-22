@@ -23,6 +23,8 @@ bun run ps -- reset support-triage                   # reset the open document t
 bun run ps -- sections support-triage                # the open document's sections, indented by nesting
 bun run ps -- section support-triage urgency         # one section's own body
 bun run ps -- edit-section support-triage urgency --file urgency.md -m "add a security level"
+bun run ps -- design support-triage output_format     # one section's input, workflow and output contracts
+bun run ps -- patterns                               # the Design panel's workflow patterns
 bun run ps -- call moveSection --params '{"rootId":"support-triage","sectionId":"urgency","direction":"up"}'
 ```
 

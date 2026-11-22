@@ -208,6 +208,17 @@ export function StudioEditor({
       confirmDiscard: panels.confirmDiscard,
       structure: { ...structure, removeSection: handleRemoveSection },
     },
+    design: {
+      loadedDocument: doc,
+      tree,
+      design: selectedRoot?.design,
+      confirmDiscard: panels.confirmDiscard,
+      saveDesign: authoring.saveDesign,
+      showDesign: (designSection) => {
+        setDesignSectionId(designSection);
+        openPanel('design');
+      },
+    },
   });
 
   const adoption = usePromptAdoption({

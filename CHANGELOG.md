@@ -17,6 +17,10 @@ All notable changes to this project are documented here. The format follows
   `move_section` and `remove_section`, the matching remote-control commands, and `ps sections`, `ps section`,
   `ps edit-section` and `ps call`. An agent changes one section at a time; every other section stays
   byte-identical, each change is one commit, and the graph updates in the open tab.
+- Design tools for agents (#7): `get_design`, `set_design`, `verify_sample`, `list_workflow_patterns` and
+  `apply_workflow_pattern`, the matching remote-control commands, and `ps design` and `ps patterns`. A change is
+  checked like the Design panel's Save, saved as a new design version, and shown in the Design panel; an invalid
+  design fails with `invalid_input` and the validator's messages.
 - A tab can report `invalid_input`, `missing_target` or `not_ready` for its own command failures; the gateway
   relays these codes instead of `command_failed`.
 - MCP server (`prompt-studio-mcp`) in the npm package and the Docker image: AI agents such as Claude Code and
