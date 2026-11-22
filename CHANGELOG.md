@@ -5,6 +5,12 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Changed
+
+- Bun is the only supported runtime. The npm package `@salir-se/prompt-studio` now requires Bun 1.4.4 or newer
+  (`engines.bun`), its launchers run under `bun`, and it is published with `bun publish`, which cannot produce npm
+  provenance attestations, so new releases carry none. Run it with `bunx @salir-se/prompt-studio`.
+
 ### Added
 
 - MCP server (`prompt-studio-mcp`) in the npm package and the Docker image: AI agents such as Claude Code and

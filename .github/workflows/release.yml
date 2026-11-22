@@ -23,17 +23,12 @@ jobs:
     timeout-minutes: 30
     permissions:
       contents: write
-      id-token: write
       packages: write
     steps:
       - uses: actions/checkout@v7
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version-file: .bun-version
-      - uses: actions/setup-node@v7
-        with:
-          node-version: 22
-          registry-url: https://registry.npmjs.org
       - run: bun install --frozen-lockfile
       - name: Check that the tag matches package.json
         run: |
@@ -59,7 +54,7 @@ jobs:
           gh release create "$GITHUB_REF_NAME" release/* --title "Prompt Studio $VERSION" --notes "${notes:-See CHANGELOG.md}"
       - name: Build the npm package
         run: bun run build:npm-package -- --version "$VERSION"
-      - name: Smoke-test the npm package under Node
+      - name: Smoke-test the npm package under Bun
         run: bun run smoke:npm-package
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -83,8 +78,12 @@ jobs:
             ghcr.io/salir-se/prompt-studio:${{ env.VERSION }}
             ghcr.io/salir-se/prompt-studio:latest
       - name: Publish to npm
-        if: ${{ env.NODE_AUTH_TOKEN != '' }}
+        # `bun publish` reads the registry token from NPM_CONFIG_TOKEN (the same variable `bun install` uses for
+        # private registries). It has no provenance flag, so this release carries no npm provenance attestation.
+        # Skipped when the NPM_TOKEN secret is absent.
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_CONFIG_TOKEN: ${{ secrets.NPM_TOKEN }}
         working-directory: .output/prompt-studio-npm/package
-        run: npm publish --provenance --access public
+        run: |
+          if [ -z "$NPM_CONFIG_TOKEN" ]; then echo "NPM_TOKEN is not set; skipping npm publish."; exit 0; fi
+          bun publish --access public

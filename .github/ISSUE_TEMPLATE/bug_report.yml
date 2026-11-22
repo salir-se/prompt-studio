@@ -28,7 +28,7 @@ body:
     id: install
     attributes:
       label: How do you run it?
-      options: [Downloaded binary, npx / bunx, From source]
+      options: [Downloaded binary, bunx, From source]
   - type: input
     id: os
     attributes:

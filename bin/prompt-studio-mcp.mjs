@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+#!/usr/bin/env bun
 /**
  * Launcher for the Prompt Studio MCP server inside the `@salir-se/prompt-studio` npm package. Copied to
  * `bin/prompt-studio-mcp.js` by scripts/build-npm-package.ts; it imports the bundled `../mcp/main.js`.
