@@ -39,6 +39,12 @@ const designScope = {
   description: 'A section id from listSections (or its xml tag). Leave it out for the whole prompt.',
 } as const;
 const commitMessage = { type: 'string', description: 'Commit message.' } as const;
+const suiteId = { type: 'string', minLength: 1, description: 'Saved test suite id, from listSuites.' } as const;
+const allowPaidRun = {
+  type: 'boolean',
+  enum: [true],
+  description: 'Explicit consent to use the configured model.',
+} as const;
 
 function command(
   name: string,
@@ -232,6 +238,30 @@ export const COMMAND_CATALOG: readonly CommandDescriptor[] = [
       required: ['proposalId'],
       properties: { proposalId: { type: 'string', minLength: 1, description: 'From proposeCheck.' } },
     },
+  ),
+  command('listSuites', 'List saved test suites for the open prompt.', 'none', documentParams),
+  command(
+    'runSuite',
+    'Start a saved suite against the open prompt using the configured model.',
+    'project',
+    onDocument(['suiteId', 'allowPaidRun'], { suiteId, allowPaidRun }),
+  ),
+  command(
+    'getEvaluationResults',
+    'Read evaluation status and per-case results for the open prompt.',
+    'none',
+    onDocument(['evaluationId'], { evaluationId: { type: 'string', minLength: 1 } }),
+  ),
+  command(
+    'compareVersions',
+    'Evaluate two tags, or a tag and the current draft, with the same saved suite.',
+    'project',
+    onDocument(['suiteId', 'allowPaidRun', 'baselineTag'], {
+      suiteId,
+      allowPaidRun,
+      baselineTag: { type: 'string', minLength: 1 },
+      candidateTag: { type: 'string', minLength: 1, description: 'Omit to use the current draft.' },
+    }),
   ),
 ];
 

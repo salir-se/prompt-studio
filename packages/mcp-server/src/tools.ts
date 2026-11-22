@@ -44,6 +44,13 @@ const designScopeArg = z
   .optional()
   .describe('A section id from list_sections (or its xml tag). Leave it out for the whole prompt');
 const commitMessageArg = z.string().optional().describe('Commit message shown in History');
+const evaluationArgs = {
+  ...documentArgs,
+  suiteId: z.string().min(1).describe('Saved suite id from list_suites.'),
+  allowPaidRun: z
+    .literal(true)
+    .describe('Pass true only after the person has authorized calling their configured model.'),
+};
 
 export interface ToolDefinition {
   readonly name: string;
@@ -323,6 +330,44 @@ export const TOOLS: readonly ToolDefinition[] = [
       'Whether the person accepted a proposed check as proposed ("accepted"), changed it before saving ("edited", with the saved version), rejected it ("rejected"), or has not decided ("pending"). Proposals last until the tab reloads.',
     inputSchema: { ...browserIdArg, proposalId: z.string().describe('From propose_check') },
     command: 'getProposalStatus',
+    toArgs: (input) => input,
+  },
+  {
+    name: 'list_suites',
+    title: 'List saved test suites',
+    description: 'List the saved suites and their test cases for the open prompt without making model calls.',
+    inputSchema: documentArgs,
+    command: 'listSuites',
+    toArgs: (input) => input,
+  },
+  {
+    name: 'run_suite',
+    title: 'Run a saved test suite',
+    description:
+      'Run a saved suite against the open prompt with the configured model. This can cost money. Returns an id for get_evaluation_results.',
+    inputSchema: evaluationArgs,
+    command: 'runSuite',
+    toArgs: (input) => input,
+  },
+  {
+    name: 'get_evaluation_results',
+    title: 'Get evaluation results',
+    description: 'Read the saved evaluation status and per-case check results. Does not make model calls.',
+    inputSchema: { ...documentArgs, evaluationId: z.string().uuid().describe('From run_suite or compare_versions.') },
+    command: 'getEvaluationResults',
+    toArgs: (input) => input,
+  },
+  {
+    name: 'compare_versions',
+    title: 'Compare prompt versions',
+    description:
+      'Run a saved suite on two Git tags, or a tag and the current draft. This can cost money. Returns an id for get_evaluation_results.',
+    inputSchema: {
+      ...evaluationArgs,
+      baselineTag: z.string().min(1).describe('The baseline Git tag name.'),
+      candidateTag: z.string().min(1).optional().describe('A second Git tag name. Omit to use the current draft.'),
+    },
+    command: 'compareVersions',
     toArgs: (input) => input,
   },
   {

@@ -234,6 +234,16 @@ export function StudioEditor({
       addProposal: verificationWorkspace.proposals.add,
       showChecks: (scope) => verificationWorkspace.open(scope, 'checks') !== null,
     },
+    evaluation:
+      verificationWorkspace.project && doc
+        ? {
+            ...verificationWorkspace.project,
+            rootId: doc.rootId,
+            source: writing.text,
+            draft: writing.dirty,
+            projectPending: verificationWorkspace.pending,
+          }
+        : undefined,
   });
 
   const adoption = usePromptAdoption({

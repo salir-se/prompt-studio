@@ -80,6 +80,7 @@ The catalog holds these commands. Every one runs in a tab, through the same func
 | Sections of the open document | `listSections`, `readSection`, `editSection` (own body only), `insertSection` (`position`: `after` or `firstChild`), `moveSection` (`direction`: `up` or `down`), `removeSection` |
 | Design of the open prompt | `getDesign`, `setDesign` (`input`, `workflow`, `output`), `verifySample` (`sample`, `contract`), `listWorkflowPatterns`, `applyWorkflowPattern` (`patternId`) |
 | Verification of the open prompt | `listChecks`, `runChecks`, `getFindings`, `proposeCheck` (`kind`: `rule` or `criterion`), `getProposalStatus` (`proposalId`) |
+| Evaluations of the open project prompt | `listSuites`, `runSuite` (`suiteId`, `allowPaidRun: true`), `getEvaluationResults` (`evaluationId`), `compareVersions` (`suiteId`, `baselineTag`, optional `candidateTag`, `allowPaidRun: true`) |
 
 Section and design commands take `rootId` (and `variantSymbol` for a variant) of the open document and a
 `sectionId` from `listSections`; design commands without `sectionId` act on the whole prompt. `setDesign` and
