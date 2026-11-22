@@ -1,0 +1,68 @@
+[
+  {
+    "scene": "intro",
+    "text": "Episode three: architecture. A prompt that calls a tool is a small workflow. When you write that workflow down, you can review it, and the agent knows where each decision belongs.",
+    "elevenLabsDirection": "[calm]",
+    "overlay": {
+      "type": "headline-card",
+      "kicker": "Prompt Studio: zero to hero · Episode 3 of 6",
+      "title": "Choose an architecture",
+      "body": "A workflow pattern, a diagram, and a design per section",
+      "placement": "top-right",
+      "motion": "fade-in"
+    }
+  },
+  {
+    "scene": "pattern-catalog",
+    "text": "Open Design and look at the major workflow. It is still the default: input, prompt, output. Choose pattern opens a short catalog of common agent designs. Each one has a diagram, a sentence about when to use it, and a link to its source. Direct prompt needs no tools. Agent with tools adds a tool loop with a step limit. Routing picks a specialist. Review and improve adds a check before the answer.",
+    "elevenLabsDirection": "[calm]"
+  },
+  {
+    "scene": "choose",
+    "text": "Pick the smallest pattern that does the job. Our assistant has one tool, and one decision before it: how many order IDs are in the message. That is a route, a tool call, and a check that the reply follows the rules. Choose Agent with tools, and Use pattern. The diagram now shows the tool loop, and a path to human review when the step limit is reached.",
+    "elevenLabsDirection": "[focused]",
+    "overlay": {
+      "type": "callout",
+      "text": "The smallest pattern that does the job",
+      "placement": "top-left",
+      "motion": "fade-in"
+    }
+  },
+  {
+    "scene": "agent-tailors",
+    "text": "Now ask the agent to make it specific. It lists the workflow patterns, applies the tools pattern, and rewrites the diagram for this prompt: route by the number of order IDs, look up the order, compose the reply from tool facts, then verify it or escalate. The Mermaid preview updates when the design is saved.",
+    "elevenLabsDirection": "[calm]"
+  },
+  {
+    "scene": "read-diagram",
+    "text": "Read the diagram as a reviewer. Every branch must end in a JSON reply. No ID, or several IDs, lead to ask for order ID. Not found leads there too. Refund requests, damaged items and requests for a person lead to escalate. If a branch has no exit, the model will invent one. The diagram documents the design. Prompt Studio does not execute it.",
+    "elevenLabsDirection": "[focused]"
+  },
+  {
+    "scene": "sub-prompt",
+    "text": "Each section can have its own small design. Select Tool use and open Design. This is a sub-prompt design. Its input is the customer message. Its output is a tool call, and the required tool is lookup_order. The agent sets the workflow for this section: zero or two IDs ask the customer, one ID calls the tool once. In episode five, the checks use these contracts.",
+    "elevenLabsDirection": "[focused]",
+    "overlay": {
+      "type": "lower-third",
+      "text": "Each section has its own input and output",
+      "placement": "bottom-right",
+      "motion": "fade-in"
+    }
+  },
+  {
+    "scene": "readiness",
+    "text": "Before you close Design, look at Readiness. It reports any section without a design or a verification profile, and any example that breaks its schema. Here it says structurally ready.",
+    "elevenLabsDirection": "[calm]"
+  },
+  {
+    "scene": "recap",
+    "text": "To recap: write the workflow down, choose the smallest pattern that fits, make every branch end in the output contract, and give each section its own input and output. Next: contracts and tools, tested with real payloads.",
+    "elevenLabsDirection": "[warm]",
+    "overlay": {
+      "type": "lower-third",
+      "text": "Next: contracts and tools",
+      "placement": "bottom-right",
+      "motion": "fade-in"
+    }
+  }
+]
