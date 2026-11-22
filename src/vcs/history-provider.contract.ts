@@ -91,6 +91,22 @@ export function runHistoryProviderContractTests(label: string, makeProvider: () 
       expect(scoutOnly.at(-1)?.message).toBe('baseline'); // The chain bottoms out in the seed.
     });
 
+    it('keeps every commit when callers commit concurrently (an agent edits faster than a person)', async () => {
+      // Given: a project, and three edits fired without awaiting each other — the editor's fire-and-forget saves
+      const provider = await seededProvider();
+      const project = await provider.createProject('Concurrent');
+      // When: the commits overlap
+      await Promise.all(
+        ['first', 'second', 'third'].map((message, index) =>
+          provider.commit({ projectId: project.id, rootKey: 'scout', text: `Scout v${index + 1}.`, message }),
+        ),
+      );
+      // Then: all three are in the history, newest first, and the head is the last text
+      const log = await provider.history(project.id, 'scout');
+      expect(log.map((entry) => entry.message)).toEqual(['third', 'second', 'first', 'baseline']);
+      expect((await provider.heads(project.id)).get('scout')).toBe('Scout v3.');
+    });
+
     it('readTextAt returns each exact prior text across a three-commit chain', async () => {
       const provider = await seededProvider();
       const project = await provider.createProject('Chain');

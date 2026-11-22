@@ -11,7 +11,7 @@ import { toolExecutor, TOOLS } from './tools';
  */
 
 describe('TOOLS table', () => {
-  it('exposes the nine editor operations plus list_targets with unique snake_case names', () => {
+  it('exposes the editor and section operations plus list_targets with unique snake_case names', () => {
     const names = TOOLS.map((tool) => tool.name);
     expect(new Set(names).size).toBe(TOOLS.length);
     expect(names).toEqual([
@@ -24,6 +24,12 @@ describe('TOOLS table', () => {
       'switch_configuration',
       'reset_document',
       'history',
+      'list_sections',
+      'read_section',
+      'edit_section',
+      'insert_section',
+      'move_section',
+      'remove_section',
       'list_targets',
     ]);
     for (const tool of TOOLS) {
@@ -85,6 +91,30 @@ describe('TOOLS table', () => {
       if (tool.name === 'list_targets') expect(tool.inputSchema.browserId).toBeUndefined();
       else expect(tool.inputSchema.browserId?.safeParse(undefined).success, tool.name).toBe(true);
     }
+  });
+
+  it('routes the section tools to the section commands with their inputs', async () => {
+    // Given: a recording caller
+    const call = vi.fn(async () => ({ ok: true }));
+    const tool = (name: string) => TOOLS.find((candidate) => candidate.name === name)!;
+    // When: each section tool runs
+    await toolExecutor(tool('list_sections'), call)({ rootId: 'order-status' });
+    await toolExecutor(tool('edit_section'), call)({ rootId: 'order-status', sectionId: 'role', body: 'B' });
+    await toolExecutor(
+      tool('insert_section'),
+      call,
+    )({ rootId: 'o', sectionId: 'role', tag: 'examples', position: 'after' });
+    await toolExecutor(tool('move_section'), call)({ rootId: 'o', sectionId: 'role', direction: 'down' });
+    // Then: each reaches its catalog command verbatim, and the enums are validated by the zod shape
+    expect(call.mock.calls.map((args) => args[0])).toEqual([
+      'listSections',
+      'editSection',
+      'insertSection',
+      'moveSection',
+    ]);
+    expect(call).toHaveBeenCalledWith('editSection', { rootId: 'order-status', sectionId: 'role', body: 'B' });
+    expect(tool('move_section').inputSchema.direction!.safeParse('left').success).toBe(false);
+    expect(tool('insert_section').inputSchema.position!.safeParse('firstChild').success).toBe(true);
   });
 
   it('validates edit_document inputs through the zod shape — text is required', () => {

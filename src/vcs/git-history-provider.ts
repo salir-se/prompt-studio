@@ -127,6 +127,19 @@ export class GitHistoryProvider implements HistoryProvider {
   private fs = createFsFromVolume(this.vol);
   /** Display names by slug, in creation order (drives `listProjects`); mirrored to {@link META_FILE}. */
   private projects = new Map<string, string>();
+  /**
+   * The tail of the write queue. Commits check out a branch, write the working tree, stage and commit; two of those
+   * interleaved commit on the same parent and the later ref update drops the earlier commit. The editor saves are
+   * fire-and-forget, and a remote agent sends edits back to back, so every working-tree mutation runs here in turn.
+   */
+  private writes: Promise<unknown> = Promise.resolve();
+
+  /** Runs `operation` after every earlier write has settled. */
+  private exclusive<T>(operation: () => Promise<T>): Promise<T> {
+    const result = this.writes.then(operation, operation);
+    this.writes = result.catch(() => undefined);
+    return result;
+  }
 
   constructor(snapshotStore: SnapshotStore, options: GitHistoryProviderOptions = {}) {
     this.snapshotStore = snapshotStore;
@@ -177,15 +190,17 @@ export class GitHistoryProvider implements HistoryProvider {
     }
     const sourceId = from ?? BASELINE_PROJECT_ID;
     this.requireProject(sourceId);
-    const id = this.uniqueSlug(slug);
-    // Branching at the source's CURRENT head freezes the fork point — later commits on the source
-    // must not leak into this project (contract: fork inherits heads, not the future). No checkout:
-    // creation only writes a ref, the working tree stays wherever the last commit left it.
-    const sourceOid = await this.headOid(sourceId);
-    await git.branch({ fs: this.fs, dir: DIR, ref: this.refFor(id), object: sourceOid });
-    this.projects.set(id, trimmed);
-    await this.writeMeta();
-    return { id, name: trimmed };
+    return this.exclusive(async () => {
+      const id = this.uniqueSlug(slug);
+      // Branching at the source's CURRENT head freezes the fork point — later commits on the source
+      // must not leak into this project (contract: fork inherits heads, not the future). No checkout:
+      // creation only writes a ref, the working tree stays wherever the last commit left it.
+      const sourceOid = await this.headOid(sourceId);
+      await git.branch({ fs: this.fs, dir: DIR, ref: this.refFor(id), object: sourceOid });
+      this.projects.set(id, trimmed);
+      await this.writeMeta();
+      return { id, name: trimmed };
+    });
   }
 
   async renameProject(id: string, name: string): Promise<void> {
@@ -201,12 +216,14 @@ export class GitHistoryProvider implements HistoryProvider {
 
   async deleteProject(id: string): Promise<void> {
     this.requireMutableProject(id, 'delete');
-    // Never delete the branch HEAD points at — park on baseline first (the tree is always clean).
-    await this.ensureCheckedOut(BASELINE_PROJECT_ID);
-    await git.deleteBranch({ fs: this.fs, dir: DIR, ref: this.refFor(id) });
-    // Only the ref goes — the commits stay in the object store, so forks keep their ancestry.
-    this.projects.delete(id);
-    await this.writeMeta();
+    await this.exclusive(async () => {
+      // Never delete the branch HEAD points at — park on baseline first (the tree is always clean).
+      await this.ensureCheckedOut(BASELINE_PROJECT_ID);
+      await git.deleteBranch({ fs: this.fs, dir: DIR, ref: this.refFor(id) });
+      // Only the ref goes — the commits stay in the object store, so forks keep their ancestry.
+      this.projects.delete(id);
+      await this.writeMeta();
+    });
   }
 
   async commit(input: {
@@ -216,7 +233,7 @@ export class GitHistoryProvider implements HistoryProvider {
     readonly message: string;
   }): Promise<HistoryCommitRef> {
     this.requireMutableProject(input.projectId, 'commit to');
-    return this.commitOnBranch(input.projectId, input.rootKey, input.text, input.message);
+    return this.exclusive(() => this.commitOnBranch(input.projectId, input.rootKey, input.text, input.message));
   }
 
   async history(projectId: string, rootKey?: string): Promise<readonly HistoryCommitRef[]> {
@@ -289,6 +306,10 @@ export class GitHistoryProvider implements HistoryProvider {
    */
   async exportArchive(projectId: string): Promise<Readonly<Record<string, string>>> {
     this.requireProject(projectId);
+    return this.exclusive(() => this.archiveOf(projectId));
+  }
+
+  private async archiveOf(projectId: string): Promise<Readonly<Record<string, string>>> {
     const headOid = await this.headOid(projectId);
     // The archive captures the project's OWN working tree, so materialize its branch first.
     await this.ensureCheckedOut(this.refFor(projectId));

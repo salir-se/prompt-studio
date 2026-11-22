@@ -201,6 +201,33 @@ export interface BrowserResultMessage {
   readonly ok: boolean;
   readonly data?: unknown;
   readonly error?: string;
+  /** Optional stable code for a failure, one of `BROWSER_ERROR_CODES`; anything else reads as `command_failed`. */
+  readonly code?: string;
+}
+
+/**
+ * The error codes a tab may report for a failed command. The gateway maps any other (or a missing) code to
+ * `command_failed`, so a tab can never claim a transport-level failure such as `timeout`.
+ */
+export const BROWSER_ERROR_CODES = ['invalid_input', 'missing_target', 'not_ready', 'command_failed'] as const;
+export type BrowserErrorCode = (typeof BROWSER_ERROR_CODES)[number];
+
+export function readBrowserErrorCode(value: unknown): BrowserErrorCode {
+  return (BROWSER_ERROR_CODES as readonly unknown[]).includes(value) ? (value as BrowserErrorCode) : 'command_failed';
+}
+
+/**
+ * A command handler in the tab throws this to report a stable error code with its readable message
+ * (for example `missing_target` for an unknown section id, `invalid_input` for a design the validator rejects).
+ */
+export class ControlCommandError extends Error {
+  readonly code: BrowserErrorCode;
+
+  constructor(code: BrowserErrorCode, message: string) {
+    super(message);
+    this.code = code;
+    this.name = 'ControlCommandError';
+  }
 }
 
 /** Any side → peer: a protocol-level failure not tied to a command (bad hello, bad frame). */

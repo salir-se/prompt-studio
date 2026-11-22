@@ -39,6 +39,23 @@ agent works, so you can review the result and ask for the next change.
 | `list_configurations`, `create_configuration`, `switch_configuration` | Manage named configurations of the project. |
 | `list_targets` | Lists the open editor tabs: `browserId`, whether each is ready, its project, open document and view. |
 
+### Sections
+
+The section tools work on one section of the **open** document, the way the outline and the graph do. Each edit is
+one commit, and the person sees the graph and the outline change while the agent works.
+
+| Tool | What it does |
+|---|---|
+| `list_sections` | Lists the sections in document order: `id`, `title`, `depth`, `parentId`, `index` among siblings, delimiter kind (`xml-tag`, `atx-heading`, `caps-label`), `childIds` and the `{{variables}}` each uses. |
+| `read_section` | Returns one section's own body (without its heading or tags and without its sub-sections). |
+| `edit_section` | Replaces one section's own body. The heading or tags, its sub-sections and every other section stay byte-identical. |
+| `insert_section` | Inserts a section after another one (`position: "after"`) or as its first sub-section (`"firstChild"`), with a tag name and an optional body. Returns the new section's id. |
+| `move_section` | Moves a section one place `up` or `down` among its siblings, with its sub-sections. |
+| `remove_section` | Removes a section and its sub-sections. The person can undo it or restore it from History. |
+
+Section ids come from `list_sections`. A nested section's id is its path (`tools/retry`). For an XML section, its
+tag (`output_format`) also works. An unknown id fails with `missing_target` and asks the agent to list sections.
+
 Edits and resets apply to the **open** document, so agents call `open_document` first.
 
 Every tool except `list_targets` takes an optional `browserId`. With one tab open, leave it out. With several
@@ -91,6 +108,8 @@ claude mcp add prompt-studio -- bun /path/to/prompt-studio/packages/mcp-server/s
 ## A typical session
 
 1. In Prompt Studio, open your project and keep the tab visible next to the agent.
+   The agent works in small steps: `open_document` → `list_sections` → `read_section` → `edit_section` or
+   `insert_section` → `list_sections` again to check the new structure.
 2. Ask the agent: *"Use prompt-studio to create a support triage prompt with mission, categories, urgency and a
    JSON output format."* Watch the sections appear in Explorer and the graph.
 3. Review the structure in **Graph** and **Verify**. Tell the agent what to change: *"Add an urgent level for
@@ -100,8 +119,7 @@ claude mcp add prompt-studio -- bun /path/to/prompt-studio/packages/mcp-server/s
 
 ## Limits
 
-- The tools work on whole documents. Section-level edits, design contracts, verification rules and
-  evaluations through MCP are planned; see the
+- Design contracts, verification rules and evaluations through MCP are planned; see the
   [roadmap issues](https://github.com/salir-se/prompt-studio/issues?q=is%3Aissue+label%3Amcp).
 - Commands relay through the open tab. With no tab open, tools answer with an error that asks you to open one.
 - If a tab disconnects or does not answer in time, the error says the command may have run; the agent should

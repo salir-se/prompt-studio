@@ -37,6 +37,7 @@ interface CliOptions {
   target?: string;
   timeoutMs?: number;
   transport: Transport;
+  params?: string;
 }
 
 function parseFlags(argv: readonly string[]): { flags: CliOptions; positional: string[] } {
@@ -63,6 +64,7 @@ function parseFlags(argv: readonly string[]): { flags: CliOptions; positional: s
     else if (arg === '--message' || arg === '-m') flags.message = next();
     else if (arg === '--from') flags.from = next();
     else if (arg === '--target') flags.target = next();
+    else if (arg === '--params') flags.params = next();
     else if (arg === '--timeout') {
       const value = Number(next());
       if (!Number.isInteger(value) || value < 1 || value > 300_000) {
@@ -95,6 +97,11 @@ Editor commands (each runs in ONE open editor tab):
   use-config <PROJECT_ID>                     switch the active configuration
   reset <rootId> [--variant SYMBOL]           reset the OPEN document to its shipped text
   history <rootId> [--variant SYMBOL]         the document's commits (newest first)
+  sections <rootId> [--variant SYMBOL]        list the OPEN document's sections (id, title, nesting)
+  section <rootId> <sectionId>                print one section's own body
+  edit-section <rootId> <sectionId> --file PATH | --stdin [-m MSG]
+                                              replace one section's own body
+  call <command> [--params JSON]              run any command from "ps capabilities" with JSON params
 
 Flags:
   --json                 print the raw JSON result; a failure prints {"ok":false,"error":{...}} to stdout
@@ -114,7 +121,7 @@ export function usage(): string {
 /** Parses `argv` (without the node/bun binary + script path) into one control call. */
 export function parseArgs(argv: readonly string[]): ParsedCommand {
   const { flags, positional } = parseFlags(argv);
-  const [name, rootId] = positional;
+  const [name, rootId, third] = positional;
   const documentArgs = (): { rootId: string; variantSymbol?: string } => {
     if (rootId === undefined) throw new CliUsageError(`${name} needs a document id — run "ps docs".`);
     return flags.variant === undefined ? { rootId } : { rootId, variantSymbol: flags.variant };
@@ -160,6 +167,38 @@ export function parseArgs(argv: readonly string[]): ParsedCommand {
       return { command: 'resetDocument', args: documentArgs(), ...flags2Parsed(flags) };
     case 'history':
       return { command: 'history', args: documentArgs(), ...flags2Parsed(flags) };
+    case 'sections':
+      return { command: 'listSections', args: documentArgs(), ...flags2Parsed(flags) };
+    case 'section':
+    case 'edit-section': {
+      const args = documentArgs();
+      if (third === undefined) throw new CliUsageError(`${name} needs a section id — run "ps sections ${rootId}".`);
+      if (name === 'section') {
+        return { command: 'readSection', args: { ...args, sectionId: third }, ...flags2Parsed(flags) };
+      }
+      if (flags.file === undefined && !flags.stdin)
+        throw new CliUsageError('edit-section needs --file PATH or --stdin.');
+      return {
+        command: 'editSection',
+        args: { ...args, sectionId: third, source: flags.file ?? 'stdin', message: flags.message },
+        ...flags2Parsed(flags),
+      };
+    }
+    case 'call': {
+      if (rootId === undefined) throw new CliUsageError('call needs a command name — run "ps capabilities".');
+      let params: unknown = {};
+      if (flags.params !== undefined) {
+        try {
+          params = JSON.parse(flags.params);
+        } catch {
+          throw new CliUsageError('--params needs a JSON object.');
+        }
+        if (typeof params !== 'object' || params === null || Array.isArray(params)) {
+          throw new CliUsageError('--params needs a JSON object.');
+        }
+      }
+      return { command: rootId, args: params, ...flags2Parsed(flags) };
+    }
     case 'help':
     case undefined:
       throw new CliUsageError(USAGE);
@@ -227,6 +266,15 @@ export function formatResult(command: string, result: unknown): string {
         .map((project) => `${project.id === body.activeProjectId ? '*' : ' '} ${project.id.padEnd(24)} ${project.name}`)
         .join('\n');
     }
+    case 'listSections': {
+      const body = result as { sections: Array<{ id: string; title: string; depth: number; delimiter: string }> };
+      if (body.sections.length === 0) return '(no sections)';
+      return body.sections
+        .map((section) => `${'  '.repeat(section.depth - 1)}${section.id}  ${section.title}  (${section.delimiter})`)
+        .join('\n');
+    }
+    case 'readSection':
+      return (result as { body: string }).body;
     case 'history': {
       const commits = result as Array<{ id: string; message: string; timestampMs: number }>;
       if (commits.length === 0) return '(no commits)';

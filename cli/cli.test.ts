@@ -37,6 +37,36 @@ describe('parseArgs', () => {
     expect(parseArgs(['history', 'scout'])).toMatchObject({ command: 'history' });
   });
 
+  it('maps the section subcommands and the generic call to their commands', () => {
+    // Given / When: the section and call subcommands are parsed
+    // Then: each maps to one catalog command with its args
+    expect(parseArgs(['sections', 'order-status'])).toMatchObject({
+      command: 'listSections',
+      args: { rootId: 'order-status' },
+    });
+    expect(parseArgs(['section', 'order-status', 'role'])).toMatchObject({
+      command: 'readSection',
+      args: { rootId: 'order-status', sectionId: 'role' },
+    });
+    expect(parseArgs(['edit-section', 'order-status', 'role', '--stdin', '-m', 'tighten'])).toMatchObject({
+      command: 'editSection',
+      args: { rootId: 'order-status', sectionId: 'role', source: 'stdin', message: 'tighten' },
+    });
+    expect(
+      parseArgs(['call', 'moveSection', '--params', '{"rootId":"o","sectionId":"role","direction":"down"}']),
+    ).toMatchObject({ command: 'moveSection', args: { rootId: 'o', sectionId: 'role', direction: 'down' } });
+    expect(() => parseArgs(['section', 'order-status'])).toThrow('needs a section id');
+    expect(() => parseArgs(['call', 'listSections', '--params', '[1]'])).toThrow('--params needs a JSON object');
+    expect(
+      formatResult('listSections', {
+        sections: [
+          { id: 'tools', title: 'tools', depth: 1, delimiter: 'xml-tag' },
+          { id: 'tools/retry', title: 'retry', depth: 2, delimiter: 'xml-tag' },
+        ],
+      }),
+    ).toBe('tools  tools  (xml-tag)\n  tools/retry  retry  (xml-tag)');
+  });
+
   it('carries global flags and rejects unknown ones with the usage error', () => {
     expect(parseArgs(['docs', '--json', '--port', '5299', '--token', 't'])).toMatchObject({
       json: true,

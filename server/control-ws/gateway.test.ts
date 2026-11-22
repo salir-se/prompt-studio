@@ -8,6 +8,7 @@
 import {
   COMMAND_CATALOG,
   ControlClient,
+  ControlCommandError,
   ControlConnectionError,
   MAX_FRAME_BYTES,
   PROTOCOL_VERSION,
@@ -253,6 +254,24 @@ describe('validation before routing', () => {
     const result = await client.command({ action: 'editDocument', params: { rootId: 'scout', text: 'x' } });
     // Then: the error carries the tab's readable message
     expect(result.error).toMatchObject({ code: 'command_failed', message: 'Open "scout" first (openDocument).' });
+  });
+
+  it("relays a tab's stable error code, but never lets a tab claim a transport code", async () => {
+    // Given: a tab that reports missing_target for one action and a forged timeout code for another
+    await start();
+    await browser({
+      handler: (action) => {
+        if (action === 'readSection') throw new ControlCommandError('missing_target', 'No section "x".');
+        throw Object.assign(new ControlCommandError('command_failed', 'Forged.'), { code: 'timeout' });
+      },
+    });
+    const client = await controller();
+    // When: both commands run
+    const missing = await client.command({ action: 'readSection', params: { rootId: 'r', sectionId: 'x' } });
+    const forged = await client.command({ action: 'listDocuments' });
+    // Then: the allowed code reaches the controller; the forged one reads as command_failed
+    expect(missing.error).toMatchObject({ code: 'missing_target', message: 'No section "x".', outcome: 'none' });
+    expect(forged.error).toMatchObject({ code: 'command_failed', message: 'Forged.' });
   });
 });
 

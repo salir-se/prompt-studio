@@ -12,7 +12,12 @@
  * with backoff and never falls back.
  */
 
-import { type BrowserState, CONTROL_WS_PATH, SUPPORTED_PROTOCOL_VERSIONS } from '@prompt-studio/control-protocol';
+import {
+  type BrowserState,
+  CONTROL_WS_PATH,
+  ControlCommandError,
+  SUPPORTED_PROTOCOL_VERSIONS,
+} from '@prompt-studio/control-protocol';
 import { type ControlHandler, connectControlChannel } from './control-channel';
 
 export const BROWSER_ID_STORAGE_KEY = 'prompt-studio.control.browserId';
@@ -99,6 +104,7 @@ export function connectWsControlChannel(
           commandId,
           ok: false,
           error: error instanceof Error ? error.message : String(error),
+          ...(error instanceof ControlCommandError ? { code: error.code } : {}),
         });
       });
   };

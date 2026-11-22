@@ -68,11 +68,12 @@ function report(io: CliIo, json: boolean, error: ControlError): number {
 async function commandArgs(parsed: ParsedCommand): Promise<unknown> {
   // `edit` carries its text out-of-band (file or stdin) — lift it into the args before the RPC.
   let args = parsed.args as Record<string, unknown>;
-  if (parsed.command === 'editDocument') {
+  if (parsed.command === 'editDocument' || (parsed.command === 'editSection' && 'source' in args)) {
+    const field = parsed.command === 'editDocument' ? 'text' : 'body';
     if (args.source === 'stdin') {
-      args = { ...args, text: await readStdin() };
+      args = { ...args, [field]: await readStdin() };
     } else if (typeof args.source === 'string') {
-      args = { ...args, text: await readFile(args.source, 'utf8') };
+      args = { ...args, [field]: await readFile(args.source, 'utf8') };
     }
     const { source: _source, ...rest } = args;
     args = rest;

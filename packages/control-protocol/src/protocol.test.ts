@@ -2,7 +2,9 @@
 import { describe, expect, it } from 'vitest';
 import { COMMAND_CATALOG, findCommand, validateParams } from './catalog.ts';
 import {
+  BROWSER_ERROR_CODES,
   ERROR_CODES,
+  readBrowserErrorCode,
   EXIT_CODES,
   exitCodeFor,
   isValidClientId,
@@ -42,10 +44,36 @@ describe('validateParams', () => {
     expect(validateParams(descriptor('listDocuments'), 'x')).toBe('params must be an object.');
   });
 
-  it('covers the nine editor commands, all executed in the browser at the applied level', () => {
+  it('checks enums, numbers and nested objects of the section and design commands', () => {
+    // Given / When / Then: enum values, wrong types and unknown nested keys are named
+    const move = descriptor('moveSection');
+    expect(validateParams(move, { rootId: 'r', sectionId: 's', direction: 'up' })).toBeNull();
+    expect(validateParams(move, { rootId: 'r', sectionId: 's', direction: 'left' })).toBe(
+      'params.direction must be one of: "up", "down".',
+    );
+    expect(validateParams(descriptor('insertSection'), { rootId: 'r', sectionId: 's', tag: 't', body: 3 })).toBe(
+      'params.body must be a string.',
+    );
+  });
+
+  it('covers the editor and section commands, all executed in the browser at the applied level', () => {
     // Given: the catalog
-    // Then: nine unique commands, each applied-only in phase 1
-    expect(new Set(COMMAND_CATALOG.map((command) => command.name)).size).toBe(9);
+    // Then: unique commands, each applied-only in phase 1, including the six section commands
+    const names = COMMAND_CATALOG.map((command) => command.name);
+    expect(new Set(names).size).toBe(names.length);
+    expect(names).toEqual(
+      expect.arrayContaining([
+        'listDocuments',
+        'editDocument',
+        'listSections',
+        'readSection',
+        'editSection',
+        'insertSection',
+        'moveSection',
+        'removeSection',
+      ]),
+    );
+    expect(names).toHaveLength(15);
     for (const command of COMMAND_CATALOG) {
       expect(command).toMatchObject({
         executor: 'browser',
@@ -53,6 +81,17 @@ describe('validateParams', () => {
         defaultCompletion: 'applied',
       });
     }
+  });
+});
+
+describe('readBrowserErrorCode', () => {
+  it('lets a tab report only command-level codes; anything else is command_failed', () => {
+    // Given: the codes a tab may send
+    // When / Then: allowed codes pass through, transport codes and junk do not
+    for (const code of BROWSER_ERROR_CODES) expect(readBrowserErrorCode(code)).toBe(code);
+    expect(readBrowserErrorCode('timeout')).toBe('command_failed');
+    expect(readBrowserErrorCode(undefined)).toBe('command_failed');
+    expect(readBrowserErrorCode(7)).toBe('command_failed');
   });
 });
 
