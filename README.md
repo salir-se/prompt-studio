@@ -177,7 +177,7 @@ contracts, architecture, checks and tests in Prompt Studio. The video has chapte
 | 3 | [Choose an architecture](https://youtu.be/a9xJqebkBg8) | 2:44 |
 | 4 | [Contracts and tools](https://youtu.be/D2w-M0pL7V4) | 3:04 |
 | 5 | [Verify and test](https://youtu.be/qKq1ol9lagQ) | 3:20 |
-| 6 | [Change safely and ship](https://youtu.be/Wfuwg8L2vXw?t=936) | 2:39 |
+| 6 | [Change safely and ship](https://youtu.be/SeSaEVH1DBg) | 2:39 |
 
 ## Documentation
 

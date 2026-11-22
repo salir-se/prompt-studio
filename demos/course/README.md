@@ -27,7 +27,7 @@ All on the @salir-ai YouTube channel, in the "prompt studio" playlist.
 | `course-ep3-…` (Choose an architecture) | [a9xJqebkBg8](https://youtu.be/a9xJqebkBg8) |
 | `course-ep4-…` (Contracts and tools) | [D2w-M0pL7V4](https://youtu.be/D2w-M0pL7V4) |
 | `course-ep5-…` (Verify and test) | [qKq1ol9lagQ](https://youtu.be/qKq1ol9lagQ) |
-| `course-ep6-…` (Change safely and ship) | not uploaded yet; part of the compiled cut from 15:36 |
+| `course-ep6-…` (Change safely and ship) | [SeSaEVH1DBg](https://youtu.be/SeSaEVH1DBg) |
 
 ## Record an episode
 
