@@ -9,6 +9,17 @@ All notable changes to this project are documented here. The format follows
 
 - MCP server (`prompt-studio-mcp`) in the npm package and the Docker image: AI agents such as Claude Code and
   Codex list, read and edit prompts in the open editor tab. Setup: `docs/mcp.md`.
+- Remote control over WebSocket (`/__control/ws`, phase 1; `docs/remote-control.md`). The CLI and the MCP server
+  now connect over WebSocket by default. With several editor tabs open, choose one: `ps targets` and
+  `--target <browserId>`, or the MCP `list_targets` tool and the `browserId` argument on every tool. New
+  `ps capabilities`, `--timeout` and `--transport ws|http` flags, stable error codes, and documented exit codes
+  (`3` cannot connect, `4` no or ambiguous tab, `5` timeout).
+
+### Deprecated
+
+- The HTTP and server-sent-events control transport (`POST /__control/command`, `GET /__control/events`,
+  `POST /__control/response`). It stays for one release; responses carry a `Deprecation` header. Use
+  `ps --transport http` only with an older Studio.
 
 ### Added
 

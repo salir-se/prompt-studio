@@ -3,13 +3,13 @@ import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { promisify } from 'node:util';
-import { expect, test } from '@playwright/test';
+import { expect, type Page, test } from '@playwright/test';
 
 /**
- * The control channel's END-TO-END contract (ADR-236; tasks #18/#19): the real CLI binary, the
- * real dev server, a real browser tab. `ps` is an RPC formatter over POST /__control/command —
- * this proves the whole chain: CLI → server relay → SSE → the tab's command handlers → response
- * → CLI output, and that a CLI edit lands in the editor the user is looking at (the dirty chip).
+ * The control channel's END-TO-END contract (ADR-236; docs/remote-control.md): the real CLI process, the
+ * real dev server, a real browser tab. The CLI's default transport is WebSocket — this proves the whole
+ * chain: CLI → `/__control/ws` gateway → the tab's WebSocket → the tab's command handlers → result → CLI
+ * output, and that a CLI edit lands in the editor the user is looking at (the dirty chip).
  */
 const exec = promisify(execFile);
 const appDir = path.resolve(import.meta.dirname, '../..');
@@ -23,20 +23,40 @@ async function ps(...args: string[]): Promise<string> {
   return stdout.trim();
 }
 
+interface Target {
+  browserId: string;
+  ready: boolean;
+  documentId: string | null;
+  view: string | null;
+}
+
+/** Polls `ps targets --json` until the open tab has registered over WebSocket and reports ready. */
+async function readyTarget(page: Page): Promise<Target> {
+  for (let attempt = 0; attempt < 20; attempt += 1) {
+    const targets = JSON.parse(await ps('targets', '--json')) as Target[];
+    if (targets.length === 1 && targets[0]?.ready === true) return targets[0];
+    await page.waitForTimeout(250);
+  }
+  throw new Error('The editor tab never registered as a ready WebSocket target.');
+}
+
 test('the CLI reads the editor through the control channel', async ({ page }) => {
   await page.goto('/');
   await expect(page.getByTestId('project-picker-trigger')).toBeVisible({ timeout: 30_000 });
+  // The tab is a WebSocket target: exactly one, ready, listed by the gateway.
+  const target = await readyTarget(page);
 
   const docs = await ps('docs');
   expect(docs).toContain('support-triage');
 
-  const read = await ps('read', 'support-triage');
+  const read = await ps('read', 'support-triage', '--target', target.browserId);
   expect(read).toContain('You are the support triage assistant'); // the starter prompt, round-tripped through the tab
 });
 
 test('the CLI writes through the editor — the open tab shows the change', async ({ page }) => {
   await page.goto('/');
   await expect(page.getByTestId('project-picker-trigger')).toBeVisible({ timeout: 30_000 });
+  await readyTarget(page);
 
   // `open` loads the document in the tab (the same state the sidebar click produces); the load
   // is async in the tab, so poll `read --json` until it reports the WORKING document.
@@ -63,6 +83,10 @@ test('the CLI writes through the editor — the open tab shows the change', asyn
     await expect(page.getByTestId('dirty-chip')).toBeVisible({ timeout: 15_000 });
     // And a CLI read-back round-trips the marker.
     expect(await ps('read', 'support-triage')).toContain('E2E-CONTROL-CHANNEL-MARKER');
+    // And the tab reported its new state to the gateway: the open document, in the write view.
+    await expect
+      .poll(async () => (JSON.parse(await ps('targets', '--json')) as Target[])[0]?.documentId)
+      .toBe('support-triage');
   } finally {
     await rm(dir, { recursive: true, force: true });
   }

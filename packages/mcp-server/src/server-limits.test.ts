@@ -2,54 +2,46 @@
 // outcome-flags: this standalone CLI has no release-flag reads; tests use its default HTTP/stdio entrypoints.
 import { type ChildProcess, spawn } from 'node:child_process';
 import { once } from 'node:events';
-import { createServer, type Server } from 'node:http';
+import { createServer } from 'node:http';
 import type { AddressInfo } from 'node:net';
 import { fileURLToPath } from 'node:url';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 import { afterAll, beforeAll, beforeEach, expect, it } from 'vitest';
-import { ControlHub } from '../../../server/control-hub';
-import { type ControlRoutes, createControlRoutes } from '../../../server/control-routes';
+import {
+  FakeBrowser,
+  type StudioFixture,
+  startStudioFixture,
+  TEST_TOKEN as TOKEN,
+} from '../../../server/control-ws/test-support';
 
-const TOKEN = 'nonfunctional-mcp-limit-fixture';
 const CONTROL_BYTES = 2 * 1024 * 1024;
 const HTTP_BYTES = CONTROL_BYTES + 4096;
 const entry = fileURLToPath(new URL('./index.ts', import.meta.url));
-let control: Server;
-let routes: ControlRoutes;
+let studio: StudioFixture;
+let tab: FakeBrowser;
 let child: ChildProcess;
 let client: Client;
 let endpoint: string;
 let controlPort: number;
-let dispatchAttempts = 0;
+/** Commands that reached the editor tab since the last reset. */
+let dispatchedBefore = 0;
+const dispatchAttempts = (): number => tab.received.length - dispatchedBefore;
 let savedText: string | undefined;
 let toolRequestBytes = 0;
 
 beforeAll(async () => {
-  const hub = new ControlHub();
-  // Only the editor tab is simulated; authentication, byte parsing and command relay are real Studio code.
-  hub.attachClient(({ id, command, args }) => {
-    if (command === 'editDocument') savedText = (args as { text: string }).text;
-    hub.receiveResponse({ id, ok: true, result: { saved: true } });
-  });
-  routes = await createControlRoutes(
-    hub,
-    TOKEN,
-    async () => {},
-    async () => {},
-    {
-      tokenDir: '/nonfunctional-fixture',
-      port: 0,
-      allowedOrigins: [],
+  // Only the editor tab is simulated (a WebSocket client in the browser role); authentication, frame limits
+  // and command routing are the real Studio gateway.
+  studio = await startStudioFixture();
+  tab = await FakeBrowser.connect(studio.url, {
+    handler: (action, params) => {
+      if (action === 'editDocument') savedText = (params as { text: string }).text;
+      return { saved: true };
     },
-  );
-  control = createServer((req, res) => {
-    if (req.url === '/__control/command') dispatchAttempts++;
-    void routes.handle(req, res);
   });
-  await new Promise<void>((resolve) => control.listen(0, '127.0.0.1', resolve));
-  controlPort = (control.address() as AddressInfo).port;
+  controlPort = studio.port;
   const reservation = createServer();
   await new Promise<void>((resolve) => reservation.listen(0, '127.0.0.1', resolve));
   const mcpPort = (reservation.address() as AddressInfo).port;
@@ -87,7 +79,7 @@ beforeAll(async () => {
 });
 
 beforeEach(() => {
-  dispatchAttempts = 0;
+  dispatchedBefore = tab.received.length;
   savedText = undefined;
   toolRequestBytes = 0;
 });
@@ -98,13 +90,14 @@ afterAll(async () => {
     child.kill();
     await exited;
   }
-  await routes?.dispose();
-  control?.closeAllConnections();
-  if (control?.listening) await new Promise<void>((resolve) => control.close(() => resolve()));
+  await tab?.close();
+  await studio?.close();
 });
 
 it('preserves an edit whose actual encoded control command is just below the downstream 2 MiB limit', async () => {
   const args = { rootId: 'fixture', text: '' };
+  // The control command's encoded size (command name + params), as on the deprecated HTTP relay; the
+  // WebSocket frame adds an envelope of ids that fits in the 4 KiB headroom of the frame limit.
   const emptyBytes = Buffer.byteLength(JSON.stringify({ command: 'editDocument', args }));
   const unit = 'A"\\\n界';
   const encodedUnitBytes = Buffer.byteLength(JSON.stringify(unit)) - 2;
@@ -115,7 +108,7 @@ it('preserves an edit whose actual encoded control command is just below the dow
   const result = await client.callTool({ name: 'edit_document', arguments: args });
   expect(result.isError).not.toBe(true);
   expect(savedText === args.text).toBe(true);
-  expect(dispatchAttempts).toBe(1);
+  expect(dispatchAttempts()).toBe(1);
   expect(toolRequestBytes).toBeGreaterThan(downstreamBytes);
   expect(toolRequestBytes).toBeLessThan(HTTP_BYTES);
 });
@@ -138,14 +131,14 @@ it('rejects an oversized authorized HTTP tool request before dispatching to Stud
     body,
   });
   expect(response.status).toBe(413);
-  expect(dispatchAttempts).toBe(0);
+  expect(dispatchAttempts()).toBe(0);
   expect(savedText).toBeUndefined();
 });
 
 it('preserves authentication before applying the HTTP body budget', async () => {
   const response = await fetch(endpoint, { method: 'POST', body: 'x'.repeat(HTTP_BYTES + 1) });
   expect(response.status).toBe(401);
-  expect(dispatchAttempts).toBe(0);
+  expect(dispatchAttempts()).toBe(0);
 });
 
 const excessiveArgs = () => ({
@@ -157,7 +150,7 @@ const excessiveArgs = () => ({
 it('rejects excessive HTTP input elements before a valid edit can reach Studio', async () => {
   const result = await client.callTool({ name: 'edit_document', arguments: excessiveArgs() });
   expect(result.isError).toBe(true);
-  expect(dispatchAttempts).toBe(0);
+  expect(dispatchAttempts()).toBe(0);
   expect(savedText).toBeUndefined();
 });
 
@@ -174,7 +167,7 @@ it('uses the same input budget on the actual stdio CLI', async () => {
     );
     const result = await stdio.callTool({ name: 'edit_document', arguments: excessiveArgs() });
     expect(result.isError).toBe(true);
-    expect(dispatchAttempts).toBe(0);
+    expect(dispatchAttempts()).toBe(0);
   } finally {
     await stdio.close();
   }

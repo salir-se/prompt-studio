@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.32.2",
+    "@prompt-studio/control-protocol": "workspace:*",
     "zod": "4.6.7"
   },
   "devDependencies": {

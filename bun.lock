@@ -8,6 +8,7 @@
         "@headless-tree/core": "1.8.0",
         "@headless-tree/react": "1.8.0",
         "@prompt-studio/agent": "workspace:*",
+        "@prompt-studio/control-protocol": "workspace:*",
         "@prompt-studio/help-system": "workspace:*",
         "@prompt-studio/prompt-graph-ui": "workspace:*",
         "@prompt-studio/prompts": "workspace:*",
@@ -65,6 +66,13 @@
       },
       "devDependencies": {
         "msw": "^2.13.2",
+        "vitest": "5.0.5",
+      },
+    },
+    "packages/control-protocol": {
+      "name": "@prompt-studio/control-protocol",
+      "version": "1.0.0",
+      "devDependencies": {
         "vitest": "5.0.5",
       },
     },
@@ -151,6 +159,7 @@
       "version": "1.0.0",
       "dependencies": {
         "@modelcontextprotocol/sdk": "^1.32.2",
+        "@prompt-studio/control-protocol": "workspace:*",
         "zod": "4.6.7",
       },
       "devDependencies": {
@@ -791,6 +800,8 @@
     "@playwright/test": ["@playwright/test@1.65.1", "", { "dependencies": { "playwright": "1.65.1" }, "bin": { "playwright": "cli.js" } }, "sha512-y+NCIRm2LvY4slUVWvGh1nujJ8RF/hEisIsq2mtUPgdQC4L701bq5hZGMhrpeXjACvwvO9tj5dJqhvM6TP9lbw=="],
 
     "@prompt-studio/agent": ["@prompt-studio/agent@workspace:packages/agent"],
+
+    "@prompt-studio/control-protocol": ["@prompt-studio/control-protocol@workspace:packages/control-protocol"],
 
     "@prompt-studio/help-system": ["@prompt-studio/help-system@workspace:packages/help-system"],
 

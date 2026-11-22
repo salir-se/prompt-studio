@@ -225,16 +225,50 @@ export interface CommandDescriptor {
 
 /** Close codes used by the gateway (4000–4999 are application-defined in RFC 6455). */
 export const CLOSE_CODES = {
+  /** The first frame was not a valid `hello`. */
+  invalidHello: 4400,
   unauthorized: 4401,
   forbidden: 4403,
   helloTimeout: 4408,
   unsupportedVersion: 4426,
 } as const;
 
-/** Picks the highest version both sides support, or null. */
-export function negotiateVersion(offered: readonly string[]): string | null {
-  for (const version of SUPPORTED_PROTOCOL_VERSIONS) if (offered.includes(version)) return version;
+/**
+ * Picks the first version in our preference order (`supported`, newest first) that the peer also offers,
+ * or null when there is none. Non-string entries in `offered` are ignored: it arrives from the network.
+ */
+export function negotiateVersion(
+  offered: unknown,
+  supported: readonly string[] = SUPPORTED_PROTOCOL_VERSIONS,
+): string | null {
+  if (!Array.isArray(offered)) return null;
+  for (const version of supported) if (offered.includes(version)) return version;
   return null;
+}
+
+/** Ids a controller or browser may choose (`commandId`, `resumeBrowserId`): short, printable, no spaces. */
+export function isValidClientId(value: unknown): value is string {
+  return typeof value === 'string' && /^[A-Za-z0-9_.:-]{1,128}$/.test(value);
+}
+
+/** Reads an untrusted `BrowserState`; returns null when the shape is wrong. */
+export function readBrowserState(value: unknown): BrowserState | null {
+  if (typeof value !== 'object' || value === null) return null;
+  const record = value as Record<string, unknown>;
+  const text = (key: string): string | null | undefined => {
+    const entry = record[key];
+    if (entry === null || entry === undefined) return null;
+    return typeof entry === 'string' ? entry.slice(0, 256) : undefined;
+  };
+  const projectId = text('projectId');
+  const projectName = text('projectName');
+  const documentId = text('documentId');
+  const view = text('view');
+  if (typeof record.ready !== 'boolean') return null;
+  if (projectId === undefined || projectName === undefined || documentId === undefined || view === undefined) {
+    return null;
+  }
+  return { ready: record.ready, projectId, projectName, documentId, view };
 }
 
 export function controlError(code: ErrorCode, message: string, extra: Partial<ControlError> = {}): ControlError {

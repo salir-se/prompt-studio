@@ -3,11 +3,11 @@ import { createServer, type IncomingMessage } from 'node:http';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
-import { callCommand, resolveContext } from './client';
-import { toolExecutor, TOOLS } from './tools';
+import { type CallContext, resolveContext, type StudioCaller, StudioConnection } from './client';
+import { LIST_TARGETS_COMMAND, toolExecutor, TOOLS } from './tools';
 
 /**
- * The prompt-studio MCP server (task #20; ADR-236) — REMOTE/HTTP BY DEFAULT: a Streamable HTTP
+ * The prompt-studio MCP server (task #20; ADR-236; docs/remote-control.md) — REMOTE/HTTP BY DEFAULT: a Streamable HTTP
  * endpoint (POST/GET/DELETE /mcp, stateless — every request is self-contained) so an LLM client
  * can point at a URL instead of launching a subprocess; `--stdio` (or MCP_TRANSPORT=stdio)
  * keeps the original stdio mode for local use.
@@ -28,18 +28,39 @@ type RegisterTool = (
   handler: (input: Record<string, unknown>) => Promise<{ content: Array<{ type: 'text'; text: string }> }>,
 ) => void;
 
-function registerTools(server: McpServer, context: Awaited<ReturnType<typeof resolveContext>>): void {
+/** Port + token, and optionally the Studio connection to use (tests; one shared connection per process). */
+export interface McpContext extends CallContext {
+  readonly studio?: StudioCaller;
+}
+
+/** One lazy, reconnecting Studio connection per context — shared by every stateless HTTP request. */
+const connections = new WeakMap<McpContext, StudioCaller>();
+function studioFor(context: McpContext): StudioCaller {
+  if (context.studio !== undefined) return context.studio;
+  let studio = connections.get(context);
+  if (studio === undefined) {
+    studio = new StudioConnection(context);
+    connections.set(context, studio);
+  }
+  return studio;
+}
+
+function registerTools(server: McpServer, context: McpContext): void {
   const register = server.registerTool.bind(server) as unknown as RegisterTool;
   for (const tool of TOOLS) {
     register(
       tool.name,
       { title: tool.title, description: tool.description, inputSchema: tool.inputSchema },
-      toolExecutor(tool, (command, args) => callCommand(context, command, args)),
+      toolExecutor(tool, (command, args, browserId) =>
+        command === LIST_TARGETS_COMMAND
+          ? studioFor(context).listTargets()
+          : studioFor(context).call(command, args, browserId),
+      ),
     );
   }
 }
 
-function buildServer(context: Awaited<ReturnType<typeof resolveContext>>): McpServer {
+function buildServer(context: McpContext): McpServer {
   const server = new McpServer({ name: 'prompt-studio', version: '1.1.0' }, { maxToolInputElements: 10_000 });
   registerTools(server, context);
   return server;
@@ -53,7 +74,7 @@ function bearerOk(req: IncomingMessage, expected: string): boolean {
   return provided.length === wanted.length && timingSafeEqual(provided, wanted);
 }
 
-async function serveHttp(context: Awaited<ReturnType<typeof resolveContext>>): Promise<void> {
+async function serveHttp(context: McpContext): Promise<void> {
   const host = process.env.PROMPT_STUDIO_MCP_HOST ?? '127.0.0.1';
   const port = Number(process.env.PROMPT_STUDIO_MCP_PORT ?? 5274);
   const server = createServer((req, res) => {
@@ -68,8 +89,8 @@ async function serveHttp(context: Awaited<ReturnType<typeof resolveContext>>): P
         return;
       }
       try {
-        // Stateless per official SDK pattern: fresh server+transport per request; the tools are
-        // plain HTTP calls to the studio, so nothing needs to survive between requests.
+        // Stateless per official SDK pattern: fresh server+transport per request; the Studio connection is
+        // the one shared, reconnecting WebSocket of this context.
         const mcp = buildServer(context);
         const transport = new StreamableHTTPServerTransport({
           sessionIdGenerator: undefined,
@@ -91,7 +112,7 @@ async function serveHttp(context: Awaited<ReturnType<typeof resolveContext>>): P
   });
 }
 
-async function serveStdio(context: Awaited<ReturnType<typeof resolveContext>>): Promise<void> {
+async function serveStdio(context: McpContext): Promise<void> {
   await buildServer(context).connect(new StdioServerTransport());
 }
 

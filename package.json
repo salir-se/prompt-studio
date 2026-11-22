@@ -27,6 +27,7 @@
     "@headless-tree/core": "1.8.0",
     "@headless-tree/react": "1.8.0",
     "@prompt-studio/agent": "workspace:*",
+    "@prompt-studio/control-protocol": "workspace:*",
     "@prompt-studio/help-system": "workspace:*",
     "@prompt-studio/prompt-graph-ui": "workspace:*",
     "@prompt-studio/prompts": "workspace:*",

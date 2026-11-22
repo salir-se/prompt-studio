@@ -462,6 +462,17 @@ export function createStudioFsBridgePlugin(options: CreateStudioFsBridgeOptions)
         }
       });
 
+      // WebSocket remote control (docs/remote-control.md): `/__control/ws` upgrades go to the gateway; every
+      // other upgrade (Vite's HMR socket) is left to its own listener.
+      server.httpServer?.on('upgrade', (req, socket, head) => {
+        if (!req.url?.startsWith('/__control/ws')) return;
+        void controlRoutes()
+          .then((control) => {
+            if (!control.handleUpgrade(req, socket, head)) socket.destroy();
+          })
+          .catch(() => socket.destroy());
+      });
+
       // Dev-server shutdown rejects pending control commands and removes the token file, so a
       // stale credential never outlives its boot.
       server.httpServer?.on('close', () => {

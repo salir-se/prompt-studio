@@ -2,7 +2,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { CatalogRoot } from '../catalog/root-catalog';
 import type { HistoryProvider, ProjectRef } from '../vcs/history-provider';
-import { type AppCommandSurface, buildAppCommands } from './app-commands';
+import { type AppCommandSurface, browserStateOf, buildAppCommands } from './app-commands';
 
 /**
  * The control command layer's observable contract (ADR-236): commands are thin adapters over the
@@ -170,5 +170,33 @@ describe('configurations + history', () => {
     const commands = buildAppCommands(makeSurface({ provider: null, projects: null, activeProjectId: null }));
     expect(() => commands.listConfigurations?.(undefined)).toThrow('booting');
     await expect(commands.history?.({ rootId: 'scout' })).rejects.toThrow('booting');
+  });
+});
+
+describe('browserStateOf', () => {
+  it('reports the tab as ready once history booted, with project, open document and view', () => {
+    // Given: a booted surface with a document open in the write view
+    const surface = makeSurface({
+      loadedDocument: { rootId: 'scout', text: 'x' },
+      activeView: 'write',
+    });
+    // When / Then: the remote-control state names all of it
+    expect(browserStateOf(surface)).toEqual({
+      ready: true,
+      projectId: 'default',
+      projectName: 'Default',
+      documentId: 'scout',
+      view: 'write',
+    });
+    // And: before history boots the tab is not ready, and with no document there is no view
+    expect(
+      browserStateOf(makeSurface({ projects: null, provider: null, activeProjectId: null, activeView: 'graph' })),
+    ).toEqual({
+      ready: false,
+      projectId: null,
+      projectName: null,
+      documentId: null,
+      view: null,
+    });
   });
 });

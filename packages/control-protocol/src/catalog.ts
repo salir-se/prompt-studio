@@ -1,4 +1,4 @@
-import type { CommandDescriptor } from './protocol';
+import type { CommandDescriptor } from './protocol.ts';
 
 /**
  * The commands a Studio editor tab executes (spec RC-05). The gateway advertises this list in `welcome`,
@@ -96,7 +96,8 @@ export function validateParams(descriptor: CommandDescriptor, params: unknown): 
     }
     if (property.type === 'string') {
       if (typeof entry !== 'string') return `params.${key} must be a string.`;
-      if (property.minLength !== undefined && entry.length < property.minLength) return `params.${key} must not be empty.`;
+      if (property.minLength !== undefined && entry.length < property.minLength)
+        return `params.${key} must not be empty.`;
     }
   }
   return null;

@@ -1,7 +1,8 @@
 // @module-tag dom
 import { describe, expect, it, vi } from 'vitest';
 import { callCommand, controlTokenFilePath, discoverToken } from './client';
-import { CliUsageError, formatResult, parseArgs } from './commands';
+import { CliUsageError, formatCapabilities, formatResult, formatTargets, parseArgs } from './commands';
+import { cliExitCode } from './main';
 
 /**
  * The CLI is an RPC FORMATTER (task #19): every subcommand maps to exactly one control-API call,
@@ -46,6 +47,47 @@ describe('parseArgs', () => {
     expect(() => parseArgs(['read'])).toThrow(/ps docs/);
     expect(() => parseArgs(['edit', 'scout'])).toThrow('--file PATH or --stdin');
     expect(() => parseArgs([])).toThrow(CliUsageError);
+  });
+});
+
+describe('remote-control flags and subcommands', () => {
+  it('parses targets, capabilities, --target, --timeout, --transport and -m', () => {
+    // Given / When / Then: the new subcommands are answered by the Studio, not a tab
+    expect(parseArgs(['targets', '--json'])).toMatchObject({ kind: 'targets', json: true, transport: 'ws' });
+    expect(parseArgs(['capabilities'])).toMatchObject({ kind: 'capabilities' });
+    // And: editor commands carry the routing flags; WebSocket is the default transport
+    expect(parseArgs(['docs', '--target', 'tab-1', '--timeout', '5000'])).toMatchObject({
+      kind: 'command',
+      command: 'listDocuments',
+      target: 'tab-1',
+      timeoutMs: 5000,
+      transport: 'ws',
+    });
+    expect(parseArgs(['docs', '--transport', 'http'])).toMatchObject({ transport: 'http' });
+    expect(parseArgs(['edit', 'scout', '--stdin', '-m', 'msg'])).toMatchObject({ args: { message: 'msg' } });
+    // And: invalid values are usage errors
+    expect(() => parseArgs(['docs', '--transport', 'sse'])).toThrow(CliUsageError);
+    expect(() => parseArgs(['docs', '--timeout', 'soon'])).toThrow(CliUsageError);
+    expect(() => parseArgs(['docs', '--port', '0'])).toThrow(CliUsageError);
+  });
+
+  it('maps failures to exit codes: no Studio is a connection failure, a lost command a timeout', () => {
+    // Given / When / Then
+    expect(cliExitCode({ code: 'disconnected', message: '', outcome: 'none' })).toBe(3);
+    expect(cliExitCode({ code: 'timeout', message: '', outcome: 'none' })).toBe(3);
+    expect(cliExitCode({ code: 'disconnected', message: '', outcome: 'unknown' })).toBe(5);
+    expect(cliExitCode({ code: 'ambiguous_target', message: '' })).toBe(4);
+    expect(cliExitCode({ code: 'command_failed', message: '' })).toBe(1);
+  });
+
+  it('formats targets and capabilities for humans', () => {
+    expect(
+      formatTargets([{ browserId: 'tab-1', ready: true, projectName: 'Default', documentId: 'scout', view: 'write' }]),
+    ).toBe('tab-1  ready  Default  scout (write)');
+    expect(formatTargets([])).toContain('no editor tab');
+    expect(formatCapabilities([{ name: 'history', description: 'Commits.', completionLevels: ['applied'] }])).toBe(
+      'history  Commits.  [applied]',
+    );
   });
 });
 

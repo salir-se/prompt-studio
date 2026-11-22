@@ -128,6 +128,8 @@ A 2-minute tour of the agent workflow is recorded from `demos/getting-started.de
 - [Use with your AI agent (MCP)](docs/mcp.md) — connect Claude Code, Codex, or any MCP client.
 - [User guide](docs/user-guide.md) — projects, writing, runs, evaluations, verification, GitHub, files and recovery.
 - [Command-line control](docs/cli.md) — drive the open editor from a terminal.
+- [Remote control over WebSocket](docs/remote-control.md) — the protocol behind the CLI and MCP server: trust
+  model, tab targeting, errors, limits.
 - [Screen map](docs/navigation-map.md) — every screen and dialog, and the component that owns it.
 - [Development](docs/development.md) — repository layout, tests, and releases.
 

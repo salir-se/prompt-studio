@@ -120,6 +120,8 @@ export async function runStandaloneServer(
   });
 
   const server = createHttpServer(config, token, resolvedManifest, control);
+  // WebSocket remote control (docs/remote-control.md): `/__control/ws` upgrades go to the gateway.
+  control.attachUpgrade(server, { rejectOtherPaths: true });
   server.listen(config.port, config.host, () => {
     console.log(`prompt-studio server listening on http://${config.host}:${config.port}`);
   });

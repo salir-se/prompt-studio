@@ -1,3 +1,3 @@
-export * from './catalog';
-export * from './client';
-export * from './protocol';
+export * from './catalog.ts';
+export * from './client.ts';
+export * from './protocol.ts';
