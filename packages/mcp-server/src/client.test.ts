@@ -1,6 +1,7 @@
 // @module-tag integration
 // outcome-flags: this standalone MCP server has no release-flag reads.
-import { createServer } from 'node:net';
+import { createServer as createNetServer } from 'node:net';
+import type { AddressInfo } from 'node:net';
 import { afterEach, beforeEach, expect, it } from 'vitest';
 import {
   FakeBrowser,
@@ -31,22 +32,22 @@ afterEach(async () => {
   await studio.close();
 });
 
-/**
- * A loopback port with nothing listening on it. A fixed low port such as 1 is not safe: on a CI runner a
- * connection to it may never be refused, and the test then waits for its timeout instead of the readable error.
- */
-async function closedPort(): Promise<number> {
-  const server = createServer();
-  await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve));
-  const { port } = server.address() as { port: number };
-  await new Promise<void>((resolve) => server.close(() => resolve()));
-  return port;
-}
-
 async function tab(handler?: Parameters<typeof FakeBrowser.connect>[1]['handler']): Promise<FakeBrowser> {
   const browser = await FakeBrowser.connect(studio.url, handler === undefined ? {} : { handler });
   tabs.push(browser);
   return browser;
+}
+
+/** A loopback port with no listener: bound to find a free number, then released. */
+function freeClosedPort(): Promise<number> {
+  return new Promise((resolve, reject) => {
+    const probe = createNetServer();
+    probe.once('error', reject);
+    probe.listen(0, '127.0.0.1', () => {
+      const { port } = probe.address() as AddressInfo;
+      probe.close(() => resolve(port));
+    });
+  });
 }
 
 it('returns the tab result over the shared connection, and fails readably with no Studio', async () => {
@@ -59,9 +60,12 @@ it('returns the tab result over the shared connection, and fails readably with n
   });
   expect(await connection.listTargets()).toHaveLength(1);
   // Then: both answered, and a call to a port with no Studio fails readably
-  const port = await closedPort();
-  const elsewhere = new StudioConnection({ port, token: TEST_TOKEN });
-  await expect(elsewhere.call('listDocuments', {})).rejects.toThrow(`Cannot reach the studio on port ${port}`);
+  // A port that was free a moment ago refuses at once on every machine; port 1 can hang on CI runners.
+  const closedPort = await freeClosedPort();
+  const elsewhere = new StudioConnection({ port: closedPort, token: TEST_TOKEN });
+  await expect(elsewhere.call('listDocuments', {})).rejects.toThrow(
+    new RegExp(`Cannot reach the studio on port ${closedPort}`),
+  );
 });
 
 it('turns gateway refusals into readable errors with the candidates to choose from', async () => {
