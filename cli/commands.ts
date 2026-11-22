@@ -103,6 +103,8 @@ Editor commands (each runs in ONE open editor tab):
                                               replace one section's own body
   design <rootId> [sectionId]                 print the design contracts of the prompt or of one section
   patterns                                    list the workflow patterns of the Design panel
+  checks <rootId> [sectionId]                 list automatic checks and AI criteria (saved and proposed)
+  findings <rootId>                           the latest automatic and AI-review findings, current or stale
   call <command> [--params JSON]              run any command from "ps capabilities" with JSON params
 
 Flags:
@@ -194,6 +196,16 @@ export function parseArgs(argv: readonly string[]): ParsedCommand {
         ...flags2Parsed(flags),
       };
     }
+    case 'checks': {
+      const args = documentArgs();
+      return {
+        command: 'listChecks',
+        args: third === undefined ? args : { ...args, sectionId: third },
+        ...flags2Parsed(flags),
+      };
+    }
+    case 'findings':
+      return { command: 'getFindings', args: documentArgs(), ...flags2Parsed(flags) };
     case 'patterns':
       return { command: 'listWorkflowPatterns', args: {}, ...flags2Parsed(flags) };
     case 'call': {

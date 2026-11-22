@@ -202,6 +202,10 @@ export function StudioOverlays({
           onRecheck={editor.runVerification}
           onSaveText={doc ? verification.saveText : undefined}
           onSaveDesign={selectedRoot.design ? verification.saveDesign : undefined}
+          proposals={verificationWorkspace.proposals.proposals.filter(
+            (proposal) => proposal.rootId === selectedRoot.id,
+          )}
+          onResolveProposal={verificationWorkspace.proposals.resolve}
         />
       )}
       {activePanel === 'history' && doc && (

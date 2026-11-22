@@ -35,6 +35,11 @@ describe('TOOLS table', () => {
       'verify_sample',
       'list_workflow_patterns',
       'apply_workflow_pattern',
+      'list_checks',
+      'run_checks',
+      'get_findings',
+      'propose_check',
+      'get_proposal_status',
       'list_targets',
     ]);
     for (const tool of TOOLS) {
@@ -137,6 +142,21 @@ describe('TOOLS table', () => {
     expect(call).toHaveBeenCalledWith('applyWorkflowPattern', { rootId: 'o', sectionId: 'tools', patternId: 'tools' });
     expect(tool('set_design').inputSchema.output!.safeParse('json').success).toBe(false);
     expect(tool('verify_sample').inputSchema.sample!.safeParse(undefined).success).toBe(false);
+  });
+
+  it('routes the verification tools; propose_check needs a kind and get_proposal_status a proposalId', async () => {
+    // Given: a recording caller
+    const call = vi.fn(async () => ({ ok: true }));
+    const tool = (name: string) => TOOLS.find((candidate) => candidate.name === name)!;
+    // When: the agent proposes a check and asks for its status
+    const rule = { kind: 'required-tool', name: 'lookup_order' };
+    await toolExecutor(tool('propose_check'), call)({ rootId: 'o', sectionId: 'tools', kind: 'rule', rule });
+    await toolExecutor(tool('get_proposal_status'), call)({ proposalId: 'proposal-1' });
+    // Then: both reach their commands verbatim, and the inputs are validated
+    expect(call).toHaveBeenCalledWith('proposeCheck', { rootId: 'o', sectionId: 'tools', kind: 'rule', rule });
+    expect(call).toHaveBeenCalledWith('getProposalStatus', { proposalId: 'proposal-1' });
+    expect(tool('propose_check').inputSchema.kind!.safeParse('approve').success).toBe(false);
+    expect(tool('get_proposal_status').inputSchema.proposalId!.safeParse(undefined).success).toBe(false);
   });
 
   it('validates edit_document inputs through the zod shape — text is required', () => {

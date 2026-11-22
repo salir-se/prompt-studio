@@ -25,6 +25,8 @@ bun run ps -- section support-triage urgency         # one section's own body
 bun run ps -- edit-section support-triage urgency --file urgency.md -m "add a security level"
 bun run ps -- design support-triage output_format     # one section's input, workflow and output contracts
 bun run ps -- patterns                               # the Design panel's workflow patterns
+bun run ps -- checks support-triage                  # automatic checks and AI criteria per scope
+bun run ps -- findings support-triage                # latest findings, current or stale
 bun run ps -- call moveSection --params '{"rootId":"support-triage","sectionId":"urgency","direction":"up"}'
 ```
 

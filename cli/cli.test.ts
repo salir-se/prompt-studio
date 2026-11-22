@@ -64,6 +64,14 @@ describe('parseArgs', () => {
       args: { rootId: 'order-status' },
     });
     expect(parseArgs(['patterns'])).toMatchObject({ command: 'listWorkflowPatterns', args: {} });
+    expect(parseArgs(['checks', 'order-status', 'tools'])).toMatchObject({
+      command: 'listChecks',
+      args: { rootId: 'order-status', sectionId: 'tools' },
+    });
+    expect(parseArgs(['findings', 'order-status'])).toMatchObject({
+      command: 'getFindings',
+      args: { rootId: 'order-status' },
+    });
     expect(() => parseArgs(['section', 'order-status'])).toThrow('needs a section id');
     expect(() => parseArgs(['call', 'listSections', '--params', '[1]'])).toThrow('--params needs a JSON object');
     expect(

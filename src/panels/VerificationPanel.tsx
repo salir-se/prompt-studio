@@ -9,7 +9,8 @@ import { CloseButton } from '../components/CloseButton';
 import type { VerificationTarget } from '../hooks/use-verification-workspace';
 import { canVerifyRoot, type VerificationRunResult } from './root-verification';
 import { SemanticReview } from './verification/SemanticReview';
-import { VerificationChecksEditor } from './verification/VerificationChecksEditor';
+import type { CheckProposal } from '../verification/check-proposals';
+import { type ResolveProposal, VerificationChecksEditor } from './verification/VerificationChecksEditor';
 import { VerificationFindings } from './verification/VerificationFindings';
 import { VerificationSourceEditor } from './verification/VerificationSourceEditor';
 import type { SemanticReviewSession } from './verification/use-semantic-review';
@@ -45,6 +46,9 @@ export interface VerificationPanelProps {
   };
   onOpenTests?: () => void;
   onOpenSettings?: () => void;
+  /** Checks an agent proposed for this prompt; shown in Checks & criteria until the person decides. */
+  proposals?: readonly CheckProposal[];
+  onResolveProposal?: ResolveProposal;
 }
 
 /** Review source and findings together; the editor retains persistence and verification ownership. */
@@ -63,6 +67,8 @@ export function VerificationPanel({
   coverage,
   onOpenTests,
   onOpenSettings,
+  proposals,
+  onResolveProposal,
 }: VerificationPanelProps) {
   const [scope, setScope] = useState(WHOLE_PROMPT);
   const [tab, setTab] = useState('findings');
@@ -313,6 +319,8 @@ export function VerificationPanel({
                       : root.design?.sectionDesigns.find((section) => section.sectionId === selectedScope)?.output,
                 }}
                 scope={selectedScope}
+                proposals={proposals}
+                onResolveProposal={onResolveProposal}
                 disabled={sourceDirty}
                 onSave={
                   onSaveDesign

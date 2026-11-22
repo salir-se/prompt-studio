@@ -271,10 +271,13 @@ export function useDocumentEditor({ boot, signal, setErrorMessage, saveDocument 
     }
   }
 
-  function runVerification(text = doc?.text, design?: PromptDesign): void {
-    if (text === undefined || !selectedRoot) return;
+  /** Runs the automatic checks on `text` and shows the result; returns it (null when nothing is open). */
+  function runVerification(text = doc?.text, design?: PromptDesign): VerificationRunResult | null {
+    if (text === undefined || !selectedRoot) return null;
     const root = withPromptStructure(design ? { ...selectedRoot, design } : selectedRoot, text);
-    setVerificationResult(runRootVerification(root, text));
+    const result = runRootVerification(root, text);
+    setVerificationResult(result);
+    return result;
   }
 
   function undo(): void {
