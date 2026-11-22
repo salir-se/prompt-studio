@@ -21,7 +21,8 @@
     "demo": "argo pipeline",
     "demo:record": "argo record",
     "demo:serve": "bun run build && bun demos/serve.ts",
-    "demo:take": "bun demos/take.ts"
+    "demo:take": "bun demos/take.ts",
+    "screenshots": "bun run build && bun demos/readme-screenshots.ts"
   },
   "dependencies": {
     "@headless-tree/core": "1.8.0",
