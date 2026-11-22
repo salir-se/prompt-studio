@@ -59,6 +59,7 @@ excluded from project exports and GitHub publication. Skills and project files s
 Graph sections show automatic/AI counts before running checks, with basic/authored and Design-derived/authored
 breakdowns. Click a count or activate it with the keyboard to open that section. Not checked, Current and Stale
 are independent for automatic and AI review; counts never imply a passing result.
+After a check, expanded sections label their finding count, such as `1 finding` or `2 findings`.
 
 In **Checks & criteria**, choose a source-aware preset or edit an automatic check to save and recheck directly.
 AI criteria remain editable before an explicit save. Harness setup preserves the prompt; View source and Save and
