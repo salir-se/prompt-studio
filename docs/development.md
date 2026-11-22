@@ -114,13 +114,17 @@ To use the secrets, a maintainer:
 1. Installs [mise](https://mise.jdx.dev) and runs `mise trust && mise install` in the repository.
 2. Places the age private key at `.secrets/mise-age.txt` (gitignored; mode `0600`). Never commit it; the
    content guard rejects any file containing an age secret key.
-3. Runs commands through mise, for example a pre-release publish (the npm account requires a one-time code):
+3. Enters the folder in a shell where mise is active (`eval "$(mise activate bash)"`). mise then exports
+   `NPM_PUBLISH_TOKEN` and `NPM_CONFIG_TOKEN` (the name `bun publish` reads), and clears them when you leave.
+   A pre-release publish (the npm account requires a one-time code):
 
    ```bash
    bun run build:npm-package -- --version 1.2.0-rc.1
    cd .output/prompt-studio-npm/package
-   mise exec -- sh -c 'NPM_CONFIG_TOKEN="$NPM_PUBLISH_TOKEN" bun publish --tag next --otp=<code>'
+   bun publish --tag next --otp=<code>
    ```
+
+   Without shell activation, prefix commands with `mise exec --`.
 
 Edit secrets with `mise exec -- sops edit .env.secrets.json`. CI does not read this file; the release workflow
 is moving to npm trusted publishing.

@@ -12,3 +12,6 @@ sops = "3.13.3"
 [[env]]
 # sops + age encrypted; see docs/development.md "Maintainer secrets".
 _.file = [".env.secrets.json"]
+# bun publish reads NPM_CONFIG_TOKEN; expose the decrypted token under that name so `bun publish --otp=<code>` works
+# as-is. Empty without the age key.
+NPM_CONFIG_TOKEN = "{{ env.NPM_PUBLISH_TOKEN | default(value='') }}"
