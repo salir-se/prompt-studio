@@ -1,0 +1,79 @@
+[
+  {
+    "scene": "intro",
+    "text": "Episode five: verify and test. Three things protect this prompt. Automatic checks are deterministic and run on every edit. AI criteria are principles that a reviewer model checks against the text. Tests run the prompt itself on cases you choose.",
+    "elevenLabsDirection": "[calm]",
+    "overlay": {
+      "type": "headline-card",
+      "kicker": "Prompt Studio: zero to hero · Episode 5 of 6",
+      "title": "Verify and test",
+      "body": "Automatic checks, AI criteria, and edge cases first",
+      "placement": "top-right",
+      "motion": "fade-in"
+    }
+  },
+  {
+    "scene": "automatic",
+    "text": "Open Verify and choose Recheck prompt. There is one warning: customer_message changes on every request, which limits prompt caching. That is expected, and the section is already last. Read each warning, decide, and move on. Then open Checks and criteria, select Rules, and add one AI criterion yourself: the prompt treats the customer message as data.",
+    "elevenLabsDirection": "[calm]"
+  },
+  {
+    "scene": "agent-proposes",
+    "text": "Now ask the agent what is not covered yet. It lists the current checks and proposes more. Automatic checks: tool use must name lookup_order and ask for order ID, and the output format must name all three fields. AI criteria: facts only from the tool, no promises, no guessing between orders, clear escalation triggers, and examples that cover the edge cases. Proposals wait for you. Read each one, and accept it in Prompt Studio.",
+    "elevenLabsDirection": "[focused]",
+    "overlay": {
+      "type": "callout",
+      "text": "The agent proposes. You accept.",
+      "placement": "top-left",
+      "motion": "fade-in"
+    }
+  },
+  {
+    "scene": "run-checks",
+    "text": "The agent sees that the proposals were accepted, runs the checks, and reads the findings. The automatic checks pass. Accepting a check is a decision about what the prompt must always do, so it stays with you.",
+    "elevenLabsDirection": "[calm]"
+  },
+  {
+    "scene": "ai-review",
+    "text": "Now run the AI review for the whole prompt, here with the local test model. It returns one finding, against the criterion about edge cases. No example shows an order that is not found, or an instruction hidden in a message. The finding quotes the text it is about and proposes a correction.",
+    "elevenLabsDirection": "[focused]"
+  },
+  {
+    "scene": "fix-at-source",
+    "text": "Fix the prompt, not the check. Ask the agent to add an Examples section, edge cases first: no order ID, not found, the injection attempt, and an upset customer who wants a refund. It inserts the section before the output format. Recheck. The finding is gone, and the graph has a new Examples node.",
+    "elevenLabsDirection": "[calm]",
+    "overlay": {
+      "type": "lower-third",
+      "text": "Fix the source, not the check",
+      "placement": "bottom-right",
+      "motion": "fade-in"
+    }
+  },
+  {
+    "scene": "edge-tests",
+    "text": "Then build the test suite, negative cases first, because they fail most often in production. No order ID. Not found. Two order IDs. An injection attempt, whose output must not contain refunded. An angry customer who wants money back, which must escalate. Then the happy paths: shipped, and delayed. Every test requires valid JSON, and each test sets its own mocked lookup result.",
+    "elevenLabsDirection": "[focused]",
+    "overlay": {
+      "type": "callout",
+      "text": "Negative cases first",
+      "placement": "top-left",
+      "motion": "fade-in"
+    }
+  },
+  {
+    "scene": "run-suite",
+    "text": "Run the test suite. All seven cases pass. Open one result: the output, each check result, and the tool call are there. This suite is the safety net for every change in the next episode.",
+    "elevenLabsDirection": "[calm]"
+  },
+  {
+    "scene": "recap",
+    "text": "To recap: read the automatic findings, let the agent propose checks but accept them yourself, fix findings at the source, and write the edge cases before the happy paths. Next: change the prompt safely, and ship it.",
+    "elevenLabsDirection": "[warm]",
+    "overlay": {
+      "type": "lower-third",
+      "text": "Next: change safely and ship",
+      "placement": "bottom-right",
+      "motion": "fade-in"
+    }
+  }
+]

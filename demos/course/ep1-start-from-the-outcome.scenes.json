@@ -1,0 +1,67 @@
+[
+  {
+    "scene": "course-intro",
+    "text": "In this course you build one prompt from an empty folder to a reviewed pull request: an order-status assistant for an online shop. A customer writes a message, the assistant looks up the order with a tool, and it returns a small JSON object that another system acts on. Your coding agent does most of the writing through Prompt Studio's MCP server. You watch the structure, the contracts and the checks in the browser, and you decide what is correct. One note for the whole series: the agent conversation on the left is scripted for the recording, but every tool call it shows is a real MCP call.",
+    "elevenLabsDirection": "[warm]",
+    "overlay": {
+      "type": "headline-card",
+      "kicker": "Prompt Studio: zero to hero · Episode 1 of 6",
+      "title": "Start from the outcome",
+      "body": "Job first, then the input and output contract",
+      "placement": "top-right",
+      "motion": "fade-in"
+    }
+  },
+  {
+    "scene": "outcome-first",
+    "text": "Before anyone writes instructions, write down the outcome. Who uses the output of this prompt? Here it is the support system, not a person. It needs a reply it can send, one of three next actions, and the order ID the assistant used. If you cannot state that, the prompt can look fine in a demo and still break the system that reads it. So the first thing we build is a contract, not a paragraph.",
+    "elevenLabsDirection": "[calm]"
+  },
+  {
+    "scene": "open-project",
+    "text": "Start with an empty Git repository. The examples folder has one, order-status-start. Paste its path and choose Open project. Prompt Studio works on an isolated copy, so your checkout stays untouched. Then choose New prompt and give it a title: Order status. The ID follows the title and becomes the file name.",
+    "elevenLabsDirection": "[calm]"
+  },
+  {
+    "scene": "declare-dependencies",
+    "text": "Under Inputs and tools, declare what the prompt depends on. The tool is lookup_order. Its description says what it returns, and its input schema allows one field, order_id, written as ORD followed by five digits. The variable is customer_message, with a purpose and an example value. Both go into the project definitions, so every prompt in the project can share them.",
+    "elevenLabsDirection": "[focused]"
+  },
+  {
+    "scene": "state-the-job",
+    "text": "Prompt Studio creates a Mission section. Replace the placeholder with the job: who the assistant is, the one thing it does, and what it does when it cannot answer. Leave everything else out for now. Rules, tool steps and the output format each get their own section later, where they can be checked on their own. Apply changes saves the edit as a commit.",
+    "elevenLabsDirection": "[calm]"
+  },
+  {
+    "scene": "input-contract",
+    "text": "Now open Design. The whole prompt has three parts: expected input, workflow, and expected output. Set the input to structured JSON, with a schema that requires two strings, customer_message and company_name. Readiness says what is missing: structured input needs at least one valid example. Paste a real request, verify it, and keep it as the example.",
+    "elevenLabsDirection": "[focused]"
+  },
+  {
+    "scene": "output-contract",
+    "text": "The output contract matters most. Set it to structured JSON. The schema requires three fields. Reply is a non-empty string. Next action must be none, escalate, or ask for order ID. Order ID is either an ID in the right format, or null. No other fields are allowed. Readiness turns green, so save the prompt design. In episode four we test real payloads against this schema.",
+    "elevenLabsDirection": "[focused]",
+    "overlay": {
+      "type": "callout",
+      "text": "Contract first: reply · next_action · order_id",
+      "placement": "top-left",
+      "motion": "fade-in"
+    }
+  },
+  {
+    "scene": "agent-sees-contract",
+    "text": "Connect your agent with one command and ask it to read the prompt. It lists the documents, reads order-status, and reads the design. Before it writes a single rule, the agent knows the job, the tool, and the exact JSON the support system expects.",
+    "elevenLabsDirection": "[calm]"
+  },
+  {
+    "scene": "recap",
+    "text": "To recap: name who uses the output, write the job in a few sentences, declare tools and variables, and define input and output as JSON Schema. Next, the agent drafts the rest of the prompt against this contract.",
+    "elevenLabsDirection": "[warm]",
+    "overlay": {
+      "type": "lower-third",
+      "text": "Next: let the agent draft",
+      "placement": "bottom-right",
+      "motion": "fade-in"
+    }
+  }
+]

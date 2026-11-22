@@ -1,0 +1,74 @@
+[
+  {
+    "scene": "intro",
+    "text": "Episode four: contracts and tools. So far the contract is a schema on screen. Now we test it with real payloads, give the variables realistic samples, and connect lookup_order, first with mocked responses and then with a real MCP call.",
+    "elevenLabsDirection": "[calm]",
+    "overlay": {
+      "type": "headline-card",
+      "kicker": "Prompt Studio: zero to hero · Episode 4 of 6",
+      "title": "Contracts and tools",
+      "body": "Samples that fail, samples that pass, mocks, then real calls",
+      "placement": "top-right",
+      "motion": "fade-in"
+    }
+  },
+  {
+    "scene": "sample-fails",
+    "text": "In Design, under Test structured JSON, paste a payload that looks plausible. Reply: refund issued. Next action: refund. Order ID: one zero four two three. Choose Verify sample. It fails twice. Refund is not an allowed next action, and the order ID does not match the ORD format. A support system would reject exactly this output.",
+    "elevenLabsDirection": "[focused]",
+    "overlay": {
+      "type": "callout",
+      "text": "Verify a sample that should fail",
+      "placement": "top-left",
+      "motion": "fade-in"
+    }
+  },
+  {
+    "scene": "sample-passes",
+    "text": "Fix it: next action none, order ID ORD-10423, and a factual reply. Verify sample passes. Choose Use verified sample as example, and it becomes part of the contract. Then ask the agent to verify two more samples, for ask for order ID and for escalate, and to add them as examples. The agent runs the same check through MCP.",
+    "elevenLabsDirection": "[calm]"
+  },
+  {
+    "scene": "variables",
+    "text": "Open Variables. customer_message has a purpose and a realistic sample, so a run never starts from an empty field. Add company_name, the shop name. It is set once per shop, not per request, so choose the configuration lifecycle. The automatic cache check then treats it as stable. Samples are examples, never secrets.",
+    "elevenLabsDirection": "[calm]"
+  },
+  {
+    "scene": "tool-definition",
+    "text": "Open Tools. lookup_order is defined once for the project, with a description and a JSON Schema input. A tool definition says what is available. It does not give anyone permission to call it.",
+    "elevenLabsDirection": "[calm]"
+  },
+  {
+    "scene": "mock-run",
+    "text": "To run, connect a model and the tool. In this video both are local: a deterministic test model, and a small demo order service registered under MCP servers. In Run, open Tool responses, select lookup_order, and keep Predefined mock. The mock returns a shipped order. Run the prompt for: where is ORD-10423? The output is valid JSON, and the tool call history shows the arguments the model sent and the mocked result.",
+    "elevenLabsDirection": "[focused]",
+    "overlay": {
+      "type": "lower-third",
+      "text": "Mocks first: repeatable runs",
+      "placement": "bottom-right",
+      "motion": "fade-in"
+    }
+  },
+  {
+    "scene": "real-call",
+    "text": "Mocks make runs repeatable. A real call proves the connection. Switch the execution mode to Real MCP call, and run again for ORD-99999. The trace now says MCP result. The demo service answers not found, and the assistant asks the customer to check the ID. Real tools can change external data, so Prompt Studio calls them only when you choose that mode.",
+    "elevenLabsDirection": "[focused]",
+    "overlay": {
+      "type": "lower-third",
+      "text": "Then a real MCP call, on purpose",
+      "placement": "bottom-right",
+      "motion": "fade-in"
+    }
+  },
+  {
+    "scene": "recap",
+    "text": "To recap: test the contract with payloads that should fail, keep verified samples as examples, give every variable a realistic sample and the right lifecycle, and run tools with mocks first and real calls on purpose. Next: checks and tests.",
+    "elevenLabsDirection": "[warm]",
+    "overlay": {
+      "type": "lower-third",
+      "text": "Next: verify and test",
+      "placement": "bottom-right",
+      "motion": "fade-in"
+    }
+  }
+]
