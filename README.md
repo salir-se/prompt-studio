@@ -22,11 +22,47 @@ Free and open source under Apache-2.0.
 4. **You steer.** Propose additional checks, workflows, or architecture patterns to the agent, edit by hand when
    that is faster, and publish a branch and pull request when the prompt is ready.
 
-## What you can do in the editor
+## See it in action
+
+Every image below is the real app on the support-triage prompt from `examples/starter`, captured by
+`bun run screenshots` with a local test model standing in for your provider.
+
+### Verify the structure
+
+| Checks on every section | Findings that point at the source |
+|---|---|
+| ![Graph view zoomed in on the Customer Message and Output Format sections. Each shows an Auto check count and an AI criteria count, Customer Message shows one finding, and the inspector on the right shows its misspelled placeholder](docs/images/graph-checks.png) | ![Verify panel listing one error and two warnings. View source has selected the misspelled customer_mesage placeholder in the prompt source](docs/images/verify-findings.png) |
+| The Graph shows how many automatic checks and AI criteria cover each section, and pins a finding to its section when it can tell where it belongs. Here a misspelled placeholder puts one finding on Customer Message. | Verify lists each finding with its severity. View source selects the exact text, so you can fix it in place and recheck. |
+
+| Checks and AI criteria you can read | AI review with evidence |
+|---|---|
+| ![Checks and criteria tab listing automatic checks such as Required variable, Known variables only and Valid JSON output instructions, followed by an authored AI criterion about next_step](docs/images/verify-checks.png) | ![AI review tab with one warning about next_step, the quoted evidence from the prompt, and a proposed correction](docs/images/ai-review.png) |
+| Add suggested automatic checks with one click and write AI review criteria in plain language. Criteria derived from the Design contracts are added for you. | AI review sends the saved criteria to your own model. A review is accepted only when every finding names a saved criterion and quotes the prompt exactly; each comes with a proposed correction. |
+
+### Validate contracts
+
+| Input, workflow and output in one place | A sample that breaks the contract |
+|---|---|
+| ![Prompt design panel with a Mermaid routing diagram from customer message through category to four teams and a JSON routing decision, a Structured JSON output, and the status Sample matches the JSON schema](docs/images/design-contract.png) | ![Prompt design panel with the output JSON schema requiring category, urgency and next_step, a sample without urgency, and the error Instance does not have required property urgency](docs/images/design-validation.png) |
+| Design records what the prompt receives, how it works (a Mermaid diagram rendered in place) and what it must return (a strict JSON Schema). A sample answer is checked against the schema. | A sample without `urgency` is rejected with the exact schema error, before you rely on the contract. |
+
+| Workflow patterns | The whole prompt, dark theme |
+|---|---|
+| ![Choose a workflow pattern dialog with Routing selected and its diagram: a request is classified and sent to specialist A, specialist B or human review](docs/images/workflow-patterns.png) | ![Dark-theme graph of the support-triage prompt with its five sections and the Urgency section open in the inspector](docs/images/graph-dark.png) |
+| Start a workflow from a pattern such as routing, sequential steps, parallel work, handoff or review, then edit it. The diagram documents the design; it does not run agents. | Every view also has a dark theme. |
+
+### Test behaviour
+
+![Evaluations Compare tab filtered to the test that needs attention: version triage-v1 fails the Account takeover test because it answers high, triage-v2 passes with urgent, and the LLM judge prefers B](docs/images/evaluations-compare.png)
+
+Compare two Git-tagged versions on the same saved test suite. Here version A misses the new urgent level for an
+account takeover, version B passes, and the optional LLM judge explains which answer it prefers.
 
 | Run the prompt against your model | Keep test suites that catch regressions |
 |---|---|
 | ![Run panel with a captured JSON answer](docs/images/run.png) | ![Evaluations panel with two passing test cases](docs/images/evaluations.png) |
+
+## What you can do in the editor
 
 
 - **Write and structure prompts.** Edit `prompts/<id>.md` files in a Markdown composer with placeholder
