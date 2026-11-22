@@ -10,7 +10,7 @@ import { STUDIO_DEV_ORIGINS } from '../src/bridge/fs-bridge';
  * Validation runs through **arktype** (ADR-066): `STUDIO_CONFIG_SCHEMA` below is the single
  * boundary that accepts or rejects every `STUDIO_*`/`ZAI_*` variable this server reads, mirroring
  * the `validateEnvConfig`/`requireEnvConfig` pattern in `@prompt-studio/worker-http`'s `env.ts` (not reused
- * directly — that package is Workers-oriented and this is a plain Node/Bun process, so this
+ * directly — that package is Workers-oriented and this is a plain Bun process, so this
  * module carries its own small, arktype-native equivalent instead of adding a dependency).
  *
  * A malformed value throws `ConfigError` with a message that NAMES the offending variable but
