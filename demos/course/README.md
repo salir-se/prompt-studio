@@ -14,6 +14,21 @@ Each episode is one Argo demo in `demos/` (Argo reads a demo and its manifest fr
 | `course-session.ts`, `course-replay.ts`, `course-checks.ts`, `course-texts.ts` | Shared setup, the off-camera replays of each episode's end state, the checks and test cases of episode 5, and the prompt texts derived from `examples/order-status`. |
 | `compiled.chapters.md` | YouTube chapters for the compiled cut, and the outro checklist card. |
 
+
+## Published videos
+
+All on the @salir-ai YouTube channel, in the "prompt studio" playlist.
+
+| Demo | Video |
+|---|---|
+| Compiled cut | [Wfuwg8L2vXw](https://youtu.be/Wfuwg8L2vXw) |
+| `course-ep1-…` (Start from the outcome) | [FxqKqw__3KU](https://youtu.be/FxqKqw__3KU) |
+| `course-ep2-…` (Let the agent draft) | [X-SMLdHQ2-4](https://youtu.be/X-SMLdHQ2-4) |
+| `course-ep3-…` (Choose an architecture) | [a9xJqebkBg8](https://youtu.be/a9xJqebkBg8) |
+| `course-ep4-…` (Contracts and tools) | [D2w-M0pL7V4](https://youtu.be/D2w-M0pL7V4) |
+| `course-ep5-…` (Verify and test) | [qKq1ol9lagQ](https://youtu.be/qKq1ol9lagQ) |
+| `course-ep6-…` (Change safely and ship) | not uploaded yet; part of the compiled cut from 15:36 |
+
 ## Record an episode
 
 ```bash

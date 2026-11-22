@@ -7,6 +7,9 @@ online shop. Your AI agent (Claude Code, Codex, or any MCP client) does most of 
 MCP server. You use Prompt Studio to see the structure, the contracts and the checks, to decide what is correct, and to
 tell the agent what to verify or change next.
 
+**Watch it:** [the full course on YouTube](https://youtu.be/Wfuwg8L2vXw) (18 minutes, with chapters), or one episode per part (linked
+at the start of each part).
+
 The course has six parts. Each part matches one episode of the video course, and each step says:
 
 - **Best practice** — what to do, in one sentence.
@@ -60,6 +63,8 @@ The course teaches the difficult cases first, because they fail most often:
 ---
 
 ## 1. Start from the outcome
+
+▶ [Watch episode 1: Start from the outcome](https://youtu.be/FxqKqw__3KU) (3:39)
 
 ### 1.1 Name who uses the output
 
@@ -121,6 +126,8 @@ The course teaches the difficult cases first, because they fail most often:
 
 ## 2. Let the agent draft
 
+▶ [Watch episode 2: Let the agent draft](https://youtu.be/X-SMLdHQ2-4) (2:50)
+
 ### 2.1 Ask for a draft against the contract
 
 - **Best practice:** ask the agent for a draft that follows the contract, and name the sections you want.
@@ -161,6 +168,8 @@ The course teaches the difficult cases first, because they fail most often:
 ---
 
 ## 3. Choose an architecture
+
+▶ [Watch episode 3: Choose an architecture](https://youtu.be/a9xJqebkBg8) (2:44)
 
 ### 3.1 Write the workflow down
 
@@ -205,6 +214,8 @@ The course teaches the difficult cases first, because they fail most often:
 ---
 
 ## 4. Contracts and tools
+
+▶ [Watch episode 4: Contracts and tools](https://youtu.be/D2w-M0pL7V4) (3:04)
 
 ### 4.1 Verify a sample that should fail
 
@@ -256,6 +267,8 @@ The course teaches the difficult cases first, because they fail most often:
 ---
 
 ## 5. Verify and test
+
+▶ [Watch episode 5: Verify and test](https://youtu.be/qKq1ol9lagQ) (3:20)
 
 ### 5.1 Read the automatic findings
 
@@ -317,6 +330,8 @@ The course teaches the difficult cases first, because they fail most often:
 ---
 
 ## 6. Change safely and ship
+
+▶ [Watch episode 6: Change safely and ship](https://youtu.be/Wfuwg8L2vXw?t=936) (2:39)
 
 ### 6.1 Tag the known-good version
 
