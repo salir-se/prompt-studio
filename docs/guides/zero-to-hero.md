@@ -331,7 +331,7 @@ The course teaches the difficult cases first, because they fail most often:
 
 ## 6. Change safely and ship
 
-▶ [Watch episode 6: Change safely and ship](https://youtu.be/Wfuwg8L2vXw?t=936) (2:39)
+▶ [Watch episode 6: Change safely and ship](https://youtu.be/SeSaEVH1DBg) (2:39)
 
 ### 6.1 Tag the known-good version
 
