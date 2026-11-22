@@ -60,9 +60,10 @@ it('returns the tab result over the shared connection, and fails readably with n
   });
   expect(await connection.listTargets()).toHaveLength(1);
   // Then: both answered, and a call to a port with no Studio fails readably
-  // A port that was free a moment ago refuses at once on every machine; port 1 can hang on CI runners.
+  // A released port has no listener. Some runtimes report the refused connection only after a long wait, so the
+  // connect bound is short: the outcome under test is the readable error, not the runtime's refusal timing.
   const closedPort = await freeClosedPort();
-  const elsewhere = new StudioConnection({ port: closedPort, token: TEST_TOKEN });
+  const elsewhere = new StudioConnection({ port: closedPort, token: TEST_TOKEN, connectTimeoutMs: 1_000 });
   await expect(elsewhere.call('listDocuments', {})).rejects.toThrow(
     new RegExp(`Cannot reach the studio on port ${closedPort}`),
   );
