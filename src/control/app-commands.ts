@@ -16,6 +16,7 @@ import { providerKeyFor } from '../vcs/provider-keys';
 import type { ControlHandler } from './control-channel';
 import { buildDesignCommands, type DesignCommandSurface } from './design-commands';
 import { buildSectionCommands, type SectionCommandSurface } from './section-commands';
+import { buildVerificationCommands, type VerificationCommandSurface } from './verification-commands';
 
 /** The App surface the commands need — implemented by the App with its live state/handlers. */
 export interface AppCommandSurface {
@@ -38,6 +39,8 @@ export interface AppCommandSurface {
   readonly sections?: SectionCommandSurface;
   /** Design contracts of the open prompt (getDesign, setDesign, verifySample, workflow patterns). */
   readonly design?: DesignCommandSurface;
+  /** Checks, findings and check proposals of the open prompt. */
+  readonly verification?: VerificationCommandSurface;
 }
 
 interface DocumentArgs {
@@ -79,6 +82,7 @@ export function buildAppCommands(surface: AppCommandSurface): Record<string, Con
   return {
     ...(surface.sections === undefined ? {} : buildSectionCommands(surface.sections)),
     ...(surface.design === undefined ? {} : buildDesignCommands(surface.design)),
+    ...(surface.verification === undefined ? {} : buildVerificationCommands(surface.verification)),
     listDocuments: () =>
       surface.roots.map(({ id, title, loadability, toolNames }) => ({
         id,

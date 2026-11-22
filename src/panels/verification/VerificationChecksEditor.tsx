@@ -1,13 +1,31 @@
-import type { PromptDesign, PromptVerificationProfile, PromptVerificationRule } from '@prompt-studio/prompts';
+import type {
+  PromptDesign,
+  PromptVerificationPrinciple,
+  PromptVerificationProfile,
+  PromptVerificationRule,
+} from '@prompt-studio/prompts';
 import { Button } from '@prompt-studio/ui/button';
 import { Textarea } from '@prompt-studio/ui/textarea';
 import { useEffect, useRef, useState } from 'react';
+import { acceptedStatus, type CheckProposal, type ProposalStatus } from '../../verification/check-proposals';
+import { ProposedChecks } from './ProposedChecks';
 import { VerificationPresets } from './VerificationPresets';
 import { VerificationRuleForm } from './VerificationRuleForm';
 import { profilesForScope, revisedVerificationDesign, RULE_NAMES, ruleDescription } from './verification-editing';
 import { appendVerificationRules, type VerificationPresetContext } from './verification-presets';
 
-type RuleEditor = { profileId: string; index?: number; kind?: PromptVerificationRule['kind'] };
+type RuleEditor = {
+  profileId: string;
+  index?: number;
+  kind?: PromptVerificationRule['kind'];
+  /** Editing an agent's proposed rule before accepting it. */
+  proposal?: CheckProposal;
+};
+export type ResolveProposal = (
+  id: string,
+  status: Exclude<ProposalStatus, 'pending'>,
+  saved?: PromptVerificationRule | PromptVerificationPrinciple,
+) => void;
 export function VerificationChecksEditor({
   profiles,
   design,
@@ -16,6 +34,8 @@ export function VerificationChecksEditor({
   onSave,
   onDirtyChange,
   presetContext,
+  proposals = [],
+  onResolveProposal,
 }: {
   profiles: readonly PromptVerificationProfile[];
   design?: PromptDesign;
@@ -24,6 +44,9 @@ export function VerificationChecksEditor({
   onSave?: (design: PromptDesign) => Promise<void>;
   onDirtyChange: (dirty: boolean) => void;
   presetContext?: VerificationPresetContext;
+  /** Pending agent proposals for this prompt; each shows under its profile until the person decides. */
+  proposals?: readonly CheckProposal[];
+  onResolveProposal?: ResolveProposal;
 }) {
   const [draft, setDraft] = useState<PromptDesign | undefined>(design);
   const [baseline, setBaseline] = useState(JSON.stringify(design));
@@ -68,7 +91,7 @@ export function VerificationChecksEditor({
   }
   function saveRule(rule: PromptVerificationRule) {
     if (!ruleEditor || !draft) return;
-    const { profileId, index } = ruleEditor;
+    const { profileId, index, proposal } = ruleEditor;
     const next = {
       ...draft,
       verificationProfiles: draft.verificationProfiles.map((profile) =>
@@ -86,7 +109,40 @@ export function VerificationChecksEditor({
     setDraft(next);
     setSaved(false);
     setRuleEditor(null);
-    void save(next);
+    void save(next).then((revised) => {
+      if (proposal && revised) resolveAccepted(proposal, revised, rule.id);
+    });
+  }
+  /** Marks a proposal accepted or edited with the check as the saved design holds it. */
+  function resolveAccepted(proposal: CheckProposal, revised: PromptDesign, checkId: string) {
+    const profile = revised.verificationProfiles.find((item) => item.id === proposal.profileId);
+    const savedCheck =
+      proposal.kind === 'rule'
+        ? profile?.deterministicRules.find((item) => item.id === checkId)
+        : profile?.principles.find((item) => item.id === checkId);
+    onResolveProposal?.(proposal.id, acceptedStatus(proposal, savedCheck), savedCheck);
+  }
+  function acceptProposal(proposal: CheckProposal, statement?: string) {
+    if (!draft) return;
+    const check =
+      proposal.kind === 'rule'
+        ? proposal.rule
+        : { ...proposal.criterion, statement: statement ?? proposal.criterion.statement };
+    const next = {
+      ...draft,
+      verificationProfiles: draft.verificationProfiles.map((profile) =>
+        profile.id !== proposal.profileId
+          ? profile
+          : proposal.kind === 'rule'
+            ? { ...profile, deterministicRules: [...profile.deterministicRules, check as PromptVerificationRule] }
+            : { ...profile, principles: [...profile.principles, check as PromptVerificationPrinciple] },
+      ),
+    };
+    setDraft(next);
+    setSaved(false);
+    void save(next).then((revised) => {
+      if (revised) resolveAccepted(proposal, revised, check.id);
+    });
   }
   function addPreset(profileId: string, rules: readonly PromptVerificationRule[]) {
     if (!draft) return;
@@ -100,7 +156,7 @@ export function VerificationChecksEditor({
     setSaved(false);
     void save(next);
   }
-  async function save(nextDraft = draft) {
+  async function save(nextDraft = draft): Promise<PromptDesign | null> {
     if (
       !nextDraft ||
       !design ||
@@ -110,7 +166,7 @@ export function VerificationChecksEditor({
       disabled ||
       stale
     )
-      return;
+      return null;
     savePending.current = true;
     setSaving(true);
     setError(null);
@@ -121,7 +177,7 @@ export function VerificationChecksEditor({
         )
       ) {
         setError('Describe each AI criterion before saving.');
-        return;
+        return null;
       }
       const revised = revisedVerificationDesign(design, nextDraft);
       // History can accept our design before durable storage fails; that is still our retryable draft.
@@ -134,8 +190,10 @@ export function VerificationChecksEditor({
         saveNotice.current?.focus();
         saveNotice.current?.scrollIntoView({ block: 'nearest' });
       });
+      return revised;
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : String(cause));
+      return null;
     } finally {
       savePending.current = false;
       setSaving(false);
@@ -195,6 +253,17 @@ export function VerificationChecksEditor({
           );
           return (
             <section key={canonical.id} className="min-w-0 space-y-3 rounded-lg border border-border p-4">
+              {editable && profile && (
+                <ProposedChecks
+                  proposals={proposals.filter(
+                    (proposal) => proposal.profileId === profile.id && proposal.status === 'pending',
+                  )}
+                  disabled={saving || disabled || stale || !!ruleEditor}
+                  onAccept={acceptProposal}
+                  onEditRule={(proposal) => setRuleEditor({ profileId: profile.id, proposal })}
+                  onReject={(proposal) => onResolveProposal?.(proposal.id, 'rejected')}
+                />
+              )}
               <section aria-label="Automatic checks" className="space-y-3">
                 <div>
                   <h4 className="text-sm font-semibold">Automatic checks</h4>
@@ -279,9 +348,15 @@ export function VerificationChecksEditor({
                 )}
                 {ruleEditor?.profileId === canonical.id && (
                   <VerificationRuleForm
-                    key={`${ruleEditor.profileId}-${ruleEditor.index ?? 'new'}`}
+                    key={`${ruleEditor.profileId}-${ruleEditor.index ?? ruleEditor.proposal?.id ?? 'new'}`}
                     initialKind={ruleEditor.kind}
-                    rule={ruleEditor.index === undefined ? undefined : profile?.deterministicRules[ruleEditor.index]}
+                    rule={
+                      ruleEditor.index !== undefined
+                        ? profile?.deterministicRules[ruleEditor.index]
+                        : ruleEditor.proposal?.kind === 'rule'
+                          ? ruleEditor.proposal.rule
+                          : undefined
+                    }
                     onSave={saveRule}
                     onCancel={() => setRuleEditor(null)}
                   />

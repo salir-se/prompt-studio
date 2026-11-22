@@ -59,6 +59,28 @@ function contractsOf(scope: DesignContracts) {
   return { input: scope.input, workflow: scope.workflow, output: scope.output };
 }
 
+/**
+ * The design section id for a requested section: a section id from listSections, an xml tag, or a design id such
+ * as `order-status.output`. Undefined (nothing requested) = the whole prompt; an unknown section is `missing_target`.
+ */
+export function resolveDesignSectionId(
+  requested: string | undefined,
+  rootId: string,
+  design: PromptDesign,
+  tree: PromptTree | null,
+): string | undefined {
+  if (requested === undefined || requested === '') return undefined;
+  if (design.sectionDesigns.some((section) => section.sectionId === requested)) return requested;
+  const sections = tree ? promptDesignSections(tree.children) : [];
+  const node =
+    (tree && findSectionNode(tree.children, requested)) ?? sections.find((candidate) => candidate.tag === requested);
+  if (node && sections.includes(node)) return promptSectionId(rootId, node);
+  throw new ControlCommandError(
+    'missing_target',
+    `No designable section "${requested}" — run listSections for ids, or leave sectionId out for the whole prompt.`,
+  );
+}
+
 export function buildDesignCommands(surface: DesignCommandSurface): Record<string, ControlHandler> {
   /** The open prompt and its design, after checking the caller targets the open document. */
   function openDesign(args: Args): { rootId: string; design: PromptDesign; text: string } {
@@ -81,23 +103,8 @@ export function buildDesignCommands(surface: DesignCommandSurface): Record<strin
     return { rootId, design: surface.design, text: loaded.text };
   }
 
-  /**
-   * The design section id for `sectionId`: a section id from listSections, an xml tag, or a design id such as
-   * `order-status.output`. Undefined = the whole prompt.
-   */
   function designSectionId(args: Args, rootId: string, design: PromptDesign): string | undefined {
-    const requested = optionalText(args, 'sectionId');
-    if (requested === undefined || requested === '') return undefined;
-    if (design.sectionDesigns.some((section) => section.sectionId === requested)) return requested;
-    const sections = surface.tree ? promptDesignSections(surface.tree.children) : [];
-    const node =
-      (surface.tree && findSectionNode(surface.tree.children, requested)) ??
-      sections.find((candidate) => candidate.tag === requested);
-    if (node && sections.includes(node)) return promptSectionId(rootId, node);
-    throw new ControlCommandError(
-      'missing_target',
-      `No designable section "${requested}" — run listSections for ids, or leave sectionId out for the whole prompt.`,
-    );
+    return resolveDesignSectionId(optionalText(args, 'sectionId'), rootId, design, surface.tree);
   }
 
   async function save(rootId: string, text: string, next: PromptDesign, sectionId: string | undefined) {

@@ -11,6 +11,7 @@ import {
 import { createWorkspacePrompt } from '../../prompt-repo/workspace-document';
 import { VerificationPanel } from '../VerificationPanel';
 import { runRootVerification } from '../root-verification';
+import type { CheckProposal } from '../../verification/check-proposals';
 import { VerificationChecksEditor } from './VerificationChecksEditor';
 import { WHOLE_PROMPT } from './verification-editing';
 
@@ -193,4 +194,90 @@ it('#2533: saves the intended check and preserves its sibling identities through
     { id: 'beta', kind: 'required-output-literal', literal: 'Beta baseline.', ...edit },
   ]);
   expect(screen.getByRole('textbox', { name: 'Verification prompt source' })).toHaveValue(source);
+});
+
+it('shows agent proposals unsaved and saves one only when the person accepts, edits or rejects it', async () => {
+  // Given: a native prompt with one rule proposal and one criterion proposal on its whole-prompt profile
+  let current = createBlankPromptDesign({ id: 'checks', title: 'Checks' }).design;
+  const profileId = current.verificationProfiles.find((profile) => profile.scope !== 'section')!.id;
+  const proposals: CheckProposal[] = [
+    {
+      id: 'p-rule',
+      rootId: 'checks',
+      scope: WHOLE_PROMPT,
+      profileId,
+      status: 'pending',
+      kind: 'rule',
+      rule: {
+        id: 'agent-1',
+        kind: 'required-output-literal',
+        literal: 'order_id',
+        severity: 'error',
+        enforcement: 'edit',
+      },
+    },
+    {
+      id: 'p-criterion',
+      rootId: 'checks',
+      scope: WHOLE_PROMPT,
+      profileId,
+      status: 'pending',
+      kind: 'criterion',
+      criterion: {
+        id: 'criterion-1',
+        version: 1,
+        owner: 'configuration',
+        statement: 'Never guess.',
+        severity: 'warning',
+        allowedCustomization: 'The prompt author may revise this criterion.',
+        sectionIds: [],
+      },
+    },
+  ];
+  const onSave = vi.fn(async (revised: PromptDesign) => {
+    current = revised;
+  });
+  const onResolve = vi.fn();
+  function Harness() {
+    const [, rerender] = useState(0);
+    return (
+      <VerificationChecksEditor
+        profiles={current.verificationProfiles}
+        design={current}
+        scope={WHOLE_PROMPT}
+        disabled={false}
+        onSave={async (revised) => {
+          await onSave(revised);
+          rerender((count) => count + 1);
+        }}
+        onDirtyChange={() => {}}
+        proposals={proposals.filter((proposal) => !onResolve.mock.calls.some(([id]) => id === proposal.id))}
+        onResolveProposal={onResolve}
+      />
+    );
+  }
+  render(<Harness />);
+  const proposed = screen.getByRole('region', { name: 'Proposed checks' });
+  expect(within(proposed).getByText('Includes “order_id”.')).toBeInTheDocument();
+  expect(onSave).not.toHaveBeenCalled();
+
+  // When: the person rewords the criterion and accepts it
+  fireEvent.change(within(proposed).getByRole('textbox', { name: 'Proposed AI criterion' }), {
+    target: { value: 'Never guess an order status.' },
+  });
+  fireEvent.click(within(proposed).getAllByRole('button', { name: 'Accept proposal' })[1]!);
+
+  // Then: the saved design holds the reworded criterion and the proposal is marked edited
+  await waitFor(() => expect(onResolve).toHaveBeenCalledWith('p-criterion', 'edited', expect.anything()));
+  const savedProfile = current.verificationProfiles.find((profile) => profile.id === profileId)!;
+  expect(savedProfile.principles.map((criterion) => criterion.statement)).toContain('Never guess an order status.');
+
+  // When: the person rejects the rule
+  fireEvent.click(screen.getByRole('button', { name: 'Reject proposal' }));
+
+  // Then: it is rejected and no rule was saved
+  expect(onResolve).toHaveBeenCalledWith('p-rule', 'rejected');
+  expect(
+    current.verificationProfiles.flatMap((profile) => profile.deterministicRules).some((rule) => rule.id === 'agent-1'),
+  ).toBe(false);
 });

@@ -21,6 +21,10 @@ All notable changes to this project are documented here. The format follows
   `apply_workflow_pattern`, the matching remote-control commands, and `ps design` and `ps patterns`. A change is
   checked like the Design panel's Save, saved as a new design version, and shown in the Design panel; an invalid
   design fails with `invalid_input` and the validator's messages.
+- Verification tools for agents (#8): `list_checks`, `run_checks`, `get_findings`, `propose_check` and
+  `get_proposal_status`, the matching remote-control commands, and `ps checks` and `ps findings`. An agent
+  proposes a check; it shows as **Proposed** in Verify → Checks & criteria, and only the person accepts, edits or
+  rejects it. Findings report whether they are current or stale. AI review stays a person's action.
 - A tab can report `invalid_input`, `missing_target` or `not_ready` for its own command failures; the gateway
   relays these codes instead of `command_failed`.
 - MCP server (`prompt-studio-mcp`) in the npm package and the Docker image: AI agents such as Claude Code and
