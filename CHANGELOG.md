@@ -43,6 +43,7 @@ All notable changes to this project are documented here. The format follows
 
 ### Fixed
 
+- Graph finding badges now display a space between the count and its label (#20).
 - History kept only some commits when edits arrived faster than a commit finished (for example an agent's
   back-to-back edits): commits on both history providers now run one after another.
 

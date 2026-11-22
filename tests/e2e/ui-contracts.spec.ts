@@ -151,6 +151,33 @@ test('#2505: full inspector identifiers wrap within the panel', async ({ page })
 
 test('#2531: verification presets fit their cards and viewport', verificationPresetContract);
 
+test('graph findings show the number and label together in expanded sections', async ({ page }) => {
+  await page.keyboard.press('Alt+2');
+  await page.keyboard.press('Alt+V');
+  const verify = page.getByRole('complementary', { name: 'Verify', exact: true });
+  const editor = verify.getByRole('textbox', { name: 'Verification prompt source' });
+  await editor.fill(source.replace('Use {{document}}', 'Use {{missing_document}}'));
+  await verify.getByRole('button', { name: 'Save and recheck', exact: true }).click();
+  await verify.getByRole('button', { name: 'Close', exact: true }).click();
+  const chip = page.locator('[data-id="section:mission"]').getByTestId('fragment-node-finding-count');
+  await expect(chip).toHaveText('2 findings');
+  // Whitespace between two flex items takes up no space in the rendered badge.
+  expect(
+    await chip.evaluate((element) => {
+      const label = document.createRange();
+      label.selectNodeContents(element);
+      return label.getClientRects().length;
+    }),
+  ).toBe(1);
+  for (const width of [1440, 375]) {
+    await page.setViewportSize({ width, height: width === 375 ? 667 : 900 });
+    for (const theme of ['light', 'dark']) {
+      await page.evaluate((theme) => document.documentElement.classList.toggle('dark', theme === 'dark'), theme);
+      await page.screenshot({ path: test.info().outputPath(`graph-findings-${width}-${theme}.png`) });
+    }
+  }
+});
+
 test('line numbers wrap and scroll with Markdown, and persist without changing source', async ({ page }) => {
   await page.keyboard.press('Alt+1');
   await page.setViewportSize({ width: 375, height: 667 });

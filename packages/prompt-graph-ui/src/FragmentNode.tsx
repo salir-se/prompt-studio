@@ -257,6 +257,7 @@ export function FragmentNode({
   sectionActions,
 }: FragmentNodeProps): React.JSX.Element {
   const HeadingTag = `h${headingLevel}` as `h${2 | 3 | 4 | 5 | 6}`;
+  const findingNoun = verification?.findingCount === 1 ? 'finding' : 'findings';
 
   // Raw-body token highlighting — the same variable/tool/tag tinting the app's
   // `PromptHighlightedEditor` (and this package's edit dialog) applies, on the read-only card body.
@@ -341,10 +342,14 @@ export function FragmentNode({
               title={`Verification state: ${verification.state}`}
               data-testid="fragment-node-finding-count"
             >
-              {verification.findingCount}{' '}
-              <span className={collapsed ? 'sr-only' : undefined}>
-                {verification.findingCount === 1 ? 'finding' : 'findings'}
-              </span>
+              {collapsed ? (
+                <>
+                  {verification.findingCount}
+                  <span className="sr-only">{` ${findingNoun}`}</span>
+                </>
+              ) : (
+                `${verification.findingCount} ${findingNoun}`
+              )}
             </span>
           )}
           <Badge variant="outline" className={collapsed ? 'sr-only' : 'shrink-0 font-mono'}>
