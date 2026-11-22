@@ -7,6 +7,9 @@ All notable changes to this project are documented here. The format follows
 
 ### Added
 
+- MCP server (`prompt-studio-mcp`) in the npm package and the Docker image: AI agents such as Claude Code and
+  Codex list, read and edit prompts in the open editor tab. Setup: `docs/mcp.md`.
+- Getting-started tutorial (`demos/getting-started.demo.ts`) recorded with Argo, and README screenshots.
 - Docker image `ghcr.io/salir-se/prompt-studio` for `linux/amd64` and `linux/arm64`, published with every release.
 
 ### Security

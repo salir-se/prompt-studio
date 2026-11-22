@@ -54,7 +54,9 @@ export const PROTECTED_TARBALL_PATHS = [
 export const REQUIRED_PACKAGE_FILES = [
   'bin/prompt-studio.js',
   'bin/prompt-studio-cli.js',
+  'bin/prompt-studio-mcp.js',
   'server/main.js',
+  'mcp/main.js',
   'cli/main.js',
   'dist/index.html',
   'studio-manifest/manifest.json',
@@ -80,7 +82,18 @@ export function buildPackageJson(version: string): Record<string, unknown> {
     name: NPM_PACKAGE_NAME,
     version,
     description:
-      'Prompt Studio — a local editor for prompt projects with versions, evaluations, and GitHub pull requests.',
+      'Prompt Studio — a visual prompt builder for AI agents: your agent composes prompts through MCP, you see structure, variables and checks live, then run, evaluate, version and open GitHub PRs.',
+    keywords: [
+      'prompt-engineering',
+      'mcp',
+      'model-context-protocol',
+      'llm',
+      'claude-code',
+      'codex',
+      'prompt-testing',
+      'evals',
+      'ai-agents',
+    ],
     type: 'module',
     license: 'Apache-2.0',
     repository: { type: 'git', url: 'git+https://github.com/salir-se/prompt-studio.git' },
@@ -90,8 +103,9 @@ export function buildPackageJson(version: string): Record<string, unknown> {
     bin: {
       'prompt-studio': 'bin/prompt-studio.js',
       'prompt-studio-cli': 'bin/prompt-studio-cli.js',
+      'prompt-studio-mcp': 'bin/prompt-studio-mcp.js',
     },
-    files: ['bin', 'cli', 'dist', 'server', 'studio-manifest', 'README.md', 'LICENSE', 'NOTICE'],
+    files: ['bin', 'cli', 'dist', 'mcp', 'server', 'studio-manifest', 'README.md', 'LICENSE', 'NOTICE'],
     publishConfig: { registry: NPM_PUBLIC_REGISTRY, access: 'public', provenance: true },
   };
 }
@@ -150,7 +164,7 @@ async function main(): Promise<void> {
   const stageRoot = path.join(repoRoot, '.output', 'prompt-studio-npm');
   const pkgDir = path.join(stageRoot, 'package');
   rmSync(stageRoot, { recursive: true, force: true });
-  for (const dir of ['bin', 'cli', 'server', 'studio-manifest'].map((entry) => path.join(pkgDir, entry))) {
+  for (const dir of ['bin', 'cli', 'mcp', 'server', 'studio-manifest'].map((entry) => path.join(pkgDir, entry))) {
     mkdirSync(dir, { recursive: true });
   }
 
@@ -176,6 +190,14 @@ async function main(): Promise<void> {
   ]);
   run(appRoot, 'bun', [
     'build',
+    'packages/mcp-server/src/index.ts',
+    '--target=node',
+    '--format=esm',
+    '--outfile',
+    path.join(pkgDir, 'mcp', 'main.js'),
+  ]);
+  run(appRoot, 'bun', [
+    'build',
     'cli/main.ts',
     '--target=node',
     '--format=esm',
@@ -186,7 +208,8 @@ async function main(): Promise<void> {
   // 3. Launchers, manifest, README, package.json.
   copyFileSync(path.join(appRoot, 'bin', 'prompt-studio.mjs'), path.join(pkgDir, 'bin', 'prompt-studio.js'));
   copyFileSync(path.join(appRoot, 'bin', 'prompt-studio-cli.mjs'), path.join(pkgDir, 'bin', 'prompt-studio-cli.js'));
-  for (const bin of ['prompt-studio.js', 'prompt-studio-cli.js']) {
+  copyFileSync(path.join(appRoot, 'bin', 'prompt-studio-mcp.mjs'), path.join(pkgDir, 'bin', 'prompt-studio-mcp.js'));
+  for (const bin of ['prompt-studio.js', 'prompt-studio-cli.js', 'prompt-studio-mcp.js']) {
     // npm preserves the file mode at pack time; be explicit rather than relying on the
     // checkout's umask.
     chmodSync(path.join(pkgDir, 'bin', bin), 0o755);

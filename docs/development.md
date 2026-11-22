@@ -23,6 +23,7 @@ files for whoever can reach it. `src/undeployable.test.ts` fails if the binding 
 | `src/` | The React 19 editor (Vite, Tailwind CSS 4, shadcn/ui primitives). |
 | `server/` | The local HTTP server: static files, file bridge, Git projects, runs, evaluations, MCP, GitHub publishing. |
 | `cli/` | The control-channel CLI (`bun run ps`). |
+| `packages/mcp-server` | The MCP server (`bun run mcp`) that lets AI agents drive the open editor. |
 | `src/release/` | The single-file binary entry point and the `update` command. |
 | `packages/prompts` | Prompt engine: prompt trees, designs, placeholders, verification profiles, blueprint serialization. |
 | `packages/agent` | LLM provider adapters, the one-shot call, the tool-calling loop, and the MCP HTTP client. |
@@ -63,3 +64,19 @@ Build and try the image locally:
 docker build -t prompt-studio:local .
 docker run --rm -p 127.0.0.1:5273:5273 -v "$PWD/examples/starter":/repo prompt-studio:local
 ```
+
+## Recording tutorials
+
+Tutorial videos are [Argo](https://www.npmjs.com/package/@argo-video/cli) Playwright scripts in `demos/`
+(`<name>.demo.ts` + `<name>.scenes.json` with the narration). The getting-started tutorial drives the real MCP
+server and a deterministic local test model, so every take is the same.
+
+```bash
+bun run build
+bun run demo:take -- getting-started                      # local Kokoro voice, free
+ARGO_TTS=elevenlabs bun run demo:take -- getting-started  # publish render, needs ELEVENLABS_API_KEY
+DEMO_SCREENSHOTS=docs/images bun run demo:take -- getting-started  # also refresh README screenshots
+```
+
+`demo:take` starts a fresh server with an empty profile, records, and stops it. Output goes to
+`.output/argo-videos/getting-started/`.

@@ -9,7 +9,13 @@ export default defineConfig({
     environment: 'happy-dom',
     globals: true,
     setupFiles: ['./src/test-setup.ts'],
-    include: ['src/**/*.test.{ts,tsx}', 'server/**/*.test.ts', 'cli/**/*.test.ts', 'scripts/**/*.test.ts'],
+    include: [
+      'src/**/*.test.{ts,tsx}',
+      'server/**/*.test.ts',
+      'cli/**/*.test.ts',
+      'scripts/**/*.test.ts',
+      'demos/**/*.test.ts',
+    ],
     // 15s is a liveness bound, not an assertion: `bun run test` runs ~10 packages concurrently via
     // turbo, and on a CPU-starved runner even the fast, in-memory `SimpleHistoryProvider` renders in
     // `App.test.tsx` can blow past vitest's 5s default. Matches the repo-wide 15s convention (see
