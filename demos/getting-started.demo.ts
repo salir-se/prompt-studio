@@ -72,7 +72,7 @@ test(DEMO_NAME, async ({ page, narration }) => {
   });
   const hold = (scene: string, startedAt: number) =>
     page.waitForTimeout(Math.max(0, narration.durationFor(scene) - (Date.now() - startedAt)));
-  let started = Date.now();
+  let started: number;
 
   // 1. Welcome
   narration.mark('welcome');
