@@ -56,6 +56,21 @@ one commit, and the person sees the graph and the outline change while the agent
 Section ids come from `list_sections`. A nested section's id is its path (`tools/retry`). For an XML section, its
 tag (`output_format`) also works. An unknown id fails with `missing_target` and asks the agent to list sections.
 
+### Evaluations
+
+Open the project prompt first. These tools use its saved suites and the model selected in Run Settings. A run
+appears in the editor's **Evaluations** panel and uses the saved Run profile's skills and tool bindings.
+
+| Tool | What it does |
+|---|---|
+| `list_suites` | Lists the open prompt's saved suites and case IDs. |
+| `run_suite` | Starts a saved `suiteId` against the current prompt or its unapplied draft. Requires `allowPaidRun: true`. |
+| `get_evaluation_results` | Reads the run by its `evaluationId`, including its status and per-case check results. |
+| `compare_versions` | Runs the same saved `suiteId` on `baselineTag` and `candidateTag`. Omit `candidateTag` to compare with the current draft. Requires `allowPaidRun: true`. |
+
+Both start commands return an ID as soon as the evaluation is queued. Set `allowPaidRun: true` only after the
+person authorizes using their configured model. When comparing, each test case runs against both versions.
+
 ### Design contracts and workflow patterns
 
 A design records, for the whole prompt and for each section, the expected **input** (free text, or JSON with a JSON

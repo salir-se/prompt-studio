@@ -91,9 +91,13 @@ describe('validateParams', () => {
         'getFindings',
         'proposeCheck',
         'getProposalStatus',
+        'listSuites',
+        'runSuite',
+        'getEvaluationResults',
+        'compareVersions',
       ]),
     );
-    expect(names).toHaveLength(25);
+    expect(names).toHaveLength(29);
     for (const command of COMMAND_CATALOG) {
       expect(command).toMatchObject({
         executor: 'browser',

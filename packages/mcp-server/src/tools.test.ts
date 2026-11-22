@@ -40,6 +40,10 @@ describe('TOOLS table', () => {
       'get_findings',
       'propose_check',
       'get_proposal_status',
+      'list_suites',
+      'run_suite',
+      'get_evaluation_results',
+      'compare_versions',
       'list_targets',
     ]);
     for (const tool of TOOLS) {

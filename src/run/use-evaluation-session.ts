@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { studioJson } from '../prompt-repo/prompt-repo-client';
 import type { EvalCase, EvalSuite, Evaluation, PromptCandidate, RunSetup } from './contracts';
-import { runError, runPost, runQuery } from './run-client';
+import { EVALUATION_STARTED, runError, runPost, runQuery, startEvaluation } from './run-client';
 import type { RunScope } from './use-run-session';
 
 export function newEvalCase(): EvalCase {
@@ -69,6 +69,16 @@ export function useEvaluationSession(scope: RunScope) {
     };
     return invalidate;
   }, [load]);
+  useEffect(() => {
+    const receive = (event: Event) => {
+      const { detail: evaluation } = event as CustomEvent<Evaluation>;
+      if (evaluation.projectId !== projectId || evaluation.suite.promptPath !== promptPath) return;
+      setEvaluations((previous) => [evaluation, ...previous.filter((entry) => entry.id !== evaluation.id)]);
+      setSelectedId(evaluation.id);
+    };
+    window.addEventListener(EVALUATION_STARTED, receive);
+    return () => window.removeEventListener(EVALUATION_STARTED, receive);
+  }, [projectId, promptPath]);
   const runningIds = evaluations
     .filter(
       (evaluation) => evaluation.status === 'running' || (evaluation.status === 'cancelled' && !evaluation.finishedAt),
@@ -181,14 +191,10 @@ export function useEvaluationSession(scope: RunScope) {
       const key = JSON.stringify({ ...body, suite });
       const id = evaluationStart.current?.key === key ? evaluationStart.current.id : crypto.randomUUID();
       evaluationStart.current = { key, id };
-      const result = await runPost<{ evaluation: Evaluation }>(
-        '/evaluations',
-        { id, ...body },
-        runQuery(`/evaluations/${id}`, { projectId }),
-      );
+      const evaluation = await startEvaluation({ id, ...body });
       evaluationStart.current = null;
-      setEvaluations((previous) => [result.evaluation, ...previous]);
-      setSelectedId(result.evaluation.id);
+      setEvaluations((previous) => [evaluation, ...previous]);
+      setSelectedId(evaluation.id);
     });
   }
   async function cancel(id: string): Promise<void> {

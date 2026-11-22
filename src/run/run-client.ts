@@ -1,7 +1,7 @@
 export { extractPlaceholderNames as promptVariables } from '@prompt-studio/prompts';
 
 import { studioJson } from '../prompt-repo/prompt-repo-client';
-import type { RunProvider, RunSettings } from './contracts';
+import type { Evaluation, PromptCandidate, RunProvider, RunSettings, RunSetup } from './contracts';
 
 export function runQuery(path: string, values: Record<string, string>): string {
   return `/__studio/run${path}?${new URLSearchParams(values)}`;
@@ -19,6 +19,30 @@ export async function runPost<T>(path: string, body: unknown, recoveryPath?: str
     }
     throw cause;
   }
+}
+
+export async function startEvaluation(
+  input: Pick<RunSetup, 'provider' | 'model' | 'skills' | 'tools'> & {
+    id: string;
+    projectId: string;
+    revision: number;
+    suiteId: string;
+    candidates: PromptCandidate[];
+    judge?: { model: string; rubric: string };
+  },
+): Promise<Evaluation> {
+  const { evaluation } = await runPost<{ evaluation: Evaluation }>(
+    '/evaluations',
+    input,
+    runQuery(`/evaluations/${input.id}`, { projectId: input.projectId }),
+  );
+  return evaluation;
+}
+
+export const EVALUATION_STARTED = 'studio:evaluation-started';
+
+export function announceEvaluation(evaluation: Evaluation): void {
+  window.dispatchEvent(new CustomEvent<Evaluation>(EVALUATION_STARTED, { detail: evaluation }));
 }
 export function runError(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
