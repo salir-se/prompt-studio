@@ -11,6 +11,37 @@ Free and open source under Apache-2.0.
 
 ![An AI agent edits a prompt through MCP while Prompt Studio shows the new Examples section live in the graph](docs/images/agent-edit.png)
 
+## Quick run
+
+You need [Bun](https://bun.sh) 1.4.4 or newer (`curl -fsSL https://bun.sh/install | bash`). No Bun? Use the
+[app or Docker](#install) instead.
+
+**1. Start Prompt Studio** in the folder that holds (or will hold) your prompts:
+
+```bash
+cd path/to/your/prompt-project
+bunx @salir/prompt-studio
+```
+
+It prints the address; open http://127.0.0.1:5273 in your browser. Leave it running.
+
+**2. Connect your AI agent** (in another terminal). For Claude Code:
+
+```bash
+claude mcp add prompt-studio -- bunx --package @salir/prompt-studio prompt-studio-mcp --stdio
+```
+
+For Codex and other MCP clients, see [docs/mcp.md](docs/mcp.md#set-up).
+
+**3. Ask your agent for a prompt**, for example:
+
+> Create a prompt in Prompt Studio that sorts customer support emails into a category and an urgency, and
+> returns JSON.
+
+Watch the prompt appear in the browser: sections in the graph, variables, contracts and checks. Then review it
+and tell the agent what to change next. To learn the whole method, follow the
+[zero-to-hero course](docs/guides/zero-to-hero.md) or [watch it](https://youtu.be/Wfuwg8L2vXw) (18 minutes).
+
 ## How it works
 
 1. **Your agent writes.** Connect the MCP server to Claude Code or Codex ([setup](docs/mcp.md)) and ask for a
@@ -141,7 +172,7 @@ projects, versions, and run history between restarts. Always publish the port on
 contains the per-launch access token, so a port published on every interface exposes your project to the network.
 Images are published for `linux/amd64` and `linux/arm64`, tagged with the release version and `latest`.
 
-## Quick start
+## Work in the editor
 
 1. Launch Prompt Studio and choose **Create project**, or open an existing Git repository by path or HTTPS URL.
    To try the example, open the `examples/starter` folder from this repository.
