@@ -3,7 +3,14 @@
 import { parsePromptTree, projectCanonicalPromptTree } from '@prompt-studio/prompts';
 import { describe, expect, it } from 'vitest';
 import { ensureSectionedTree } from '../catalog/prose-tree';
-import { sectionEditBody, spliceSectionBody } from './section-edit';
+import {
+  findSectionNode,
+  insertSectionText,
+  sectionEditBody,
+  sectionOwnBody,
+  spliceSectionBody,
+  spliceSectionOwnBody,
+} from './section-edit';
 
 const body = 'Intro.\n<first>\nRead.\n</first>\nBetween.\n<last>\nReply.\n</last>\nAfter.\n';
 
@@ -57,5 +64,55 @@ describe('#2521: section subtree source editing', () => {
     expect(spliceSectionBody(source, { ...section, text: 'Outdated introduction.' }, 'New.')).toBeNull();
     expect(spliceSectionBody(source, { ...section, range: { start: 0, end: 5 } }, 'New.')).toBeNull();
     expect(spliceSectionBody(source, { ...section, range: { start: -1, end: source.length + 1 } }, 'New.')).toBeNull();
+  });
+});
+
+describe('section commands: own-body splice and insert (roadmap #6)', () => {
+  const order = [
+    '<role>\nYou answer order-status questions.\n</role>',
+    '<tools>\nCall lookup_order with {{order_id}}.\n<retry>\nRetry once.\n</retry>\n</tools>',
+    '<output>\nReply with JSON.\n</output>',
+  ].join('\n\n');
+  const tree = () => parsePromptTree({ key: 'order-status', text: order });
+  const node = (id: string) => findSectionNode(tree().children, id)!;
+
+  it('replaces only the own body and leaves every other byte unchanged', () => {
+    // Given: a prompt whose tools section has a nested retry section
+    const tools = node('tools');
+    // When: the tools section's own body is replaced without a trailing newline
+    const next = spliceSectionOwnBody(order, tools, 'Call lookup_order once per message.')!;
+    // Then: only the own-body range changed; the retry sub-section and the other sections are byte-identical
+    const range = sectionOwnBody(order, tools)!;
+    expect(range.text).toBe('Call lookup_order with {{order_id}}.\n');
+    expect(next).toBe(`${order.slice(0, range.start)}Call lookup_order once per message.\n${order.slice(range.end)}`);
+    const after = parsePromptTree({ key: 'order-status', text: next });
+    expect(findSectionNode(after.children, 'tools/retry')!.text).toBe(node('tools/retry').text);
+    expect(after.children.map((section) => section.id)).toEqual(['role', 'tools', 'output']);
+  });
+
+  it('keeps the closing tag on its own line for a leaf xml section', () => {
+    // Given / When: the output section gets a body without a trailing newline
+    const next = spliceSectionOwnBody(order, node('output'), 'Reply with {"status": "..."}')!;
+    // Then: the closing tag still starts a line and the section parses with the new body
+    expect(next.endsWith('<output>\nReply with {"status": "..."}\n</output>')).toBe(true);
+    expect(
+      sectionOwnBody(next, findSectionNode(parsePromptTree({ key: 'k', text: next }).children, 'output')!)?.text,
+    ).toBe('Reply with {"status": "..."}\n');
+  });
+
+  it('inserts a sibling or a first child with a body and reports its id', () => {
+    // Given: the role section as the anchor
+    // When: a sibling "examples" with a body is inserted after it
+    const sibling = insertSectionText(order, 'order-status', node('role'), 'after', 'examples', 'Order 42 → shipped.')!;
+    // Then: the new section sits between role and tools with the given body
+    const parsed = parsePromptTree({ key: 'order-status', text: sibling.text });
+    expect(parsed.children.map((section) => section.id)).toEqual(['role', sibling.sectionId, 'tools', 'output']);
+    expect(findSectionNode(parsed.children, sibling.sectionId)!.text.trim()).toBe('Order 42 → shipped.');
+    // When: a first child is inserted under tools without a body
+    const child = insertSectionText(order, 'order-status', node('tools'), 'firstChild', 'errors')!;
+    // Then: it is the first sub-section of tools, with the placeholder line
+    const tools = findSectionNode(parsePromptTree({ key: 'k', text: child.text }).children, 'tools')!;
+    expect(tools.children.map((section) => section.id)).toEqual([child.sectionId, 'tools/retry']);
+    expect(tools.children[0].text.trim()).toBe('Describe this section.');
   });
 });

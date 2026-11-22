@@ -36,6 +36,11 @@ const documentArgs = {
     .describe('Variant symbol for variant-resolved documents (the error names the options)'),
 };
 
+const sectionIdArg = z
+  .string()
+  .describe('Section id from list_sections (for example "role"). Ids can change after a section is renamed.');
+const commitMessageArg = z.string().optional().describe('Commit message shown in History');
+
 export interface ToolDefinition {
   readonly name: string;
   readonly title: string;
@@ -126,6 +131,72 @@ export const TOOLS: readonly ToolDefinition[] = [
       "The OPEN configuration's commits for a document, newest first (baseline seeds, edits, resets, restores).",
     inputSchema: documentArgs,
     command: 'history',
+    toArgs: (input) => input,
+  },
+  {
+    name: 'list_sections',
+    title: 'List sections',
+    description:
+      'The sections of the OPEN document (open_document first), in document order: id, title, depth, parentId, index among siblings, delimiter kind (xml-tag, atx-heading, caps-label), childIds and the {{variables}} each uses. Call this before any other section tool to get ids; call it again after inserting, moving or removing sections.',
+    inputSchema: documentArgs,
+    command: 'listSections',
+    toArgs: (input) => input,
+  },
+  {
+    name: 'read_section',
+    title: 'Read a section',
+    description:
+      "One section's OWN body (its text without the heading or tags and without its sub-sections), plus its place in the tree. Use it instead of read_document when you will change one section.",
+    inputSchema: { ...documentArgs, sectionId: sectionIdArg },
+    command: 'readSection',
+    toArgs: (input) => input,
+  },
+  {
+    name: 'edit_section',
+    title: 'Edit a section',
+    description:
+      "Replace one section's OWN body. The heading/tags, its sub-sections and every other section stay byte-identical. Saved as one commit; the person sees the graph and outline update live. Prefer this over edit_document for a change to one section.",
+    inputSchema: {
+      ...documentArgs,
+      sectionId: sectionIdArg,
+      body: z.string().describe('The new body, without the heading or tags'),
+      message: commitMessageArg,
+    },
+    command: 'editSection',
+    toArgs: (input) => input,
+  },
+  {
+    name: 'insert_section',
+    title: 'Insert a section',
+    description:
+      'Insert a new section after an existing one (position "after", a sibling in the same style) or as its first sub-section (position "firstChild", an <tag> section). Returns the new section id. Saved as one commit.',
+    inputSchema: {
+      ...documentArgs,
+      sectionId: sectionIdArg.describe('The section to insert after, or under'),
+      position: z.enum(['after', 'firstChild']).optional().describe('Default: after'),
+      tag: z.string().describe('Name of the new section: letters, digits and _, starting with a letter'),
+      body: z.string().optional().describe('Body of the new section. Default: a placeholder line to replace'),
+      message: commitMessageArg,
+    },
+    command: 'insertSection',
+    toArgs: (input) => input,
+  },
+  {
+    name: 'move_section',
+    title: 'Move a section',
+    description:
+      'Move a section one place up or down among its siblings, together with its sub-sections. Fails when it is already first or last. Saved as one commit.',
+    inputSchema: { ...documentArgs, sectionId: sectionIdArg, direction: z.enum(['up', 'down']) },
+    command: 'moveSection',
+    toArgs: (input) => input,
+  },
+  {
+    name: 'remove_section',
+    title: 'Remove a section',
+    description:
+      'Remove a section and its sub-sections from the open document. Saved as one commit, so the person can undo it or restore it from History.',
+    inputSchema: { ...documentArgs, sectionId: sectionIdArg },
+    command: 'removeSection',
     toArgs: (input) => input,
   },
   {

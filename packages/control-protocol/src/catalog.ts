@@ -17,6 +17,25 @@ const documentParams = {
 
 const none = { type: 'object', additionalProperties: false, properties: {} } as const;
 
+/** Params of a command on the open document: `rootId` (+ `variantSymbol`) plus the command's own fields. */
+function onDocument(
+  required: readonly string[],
+  properties: Readonly<Record<string, unknown>>,
+): Readonly<Record<string, unknown>> {
+  return {
+    ...documentParams,
+    required: ['rootId', ...required],
+    properties: { ...documentParams.properties, ...properties },
+  };
+}
+
+const sectionId = {
+  type: 'string',
+  minLength: 1,
+  description: 'Section id, from listSections (for example "role" or "output-format").',
+} as const;
+const commitMessage = { type: 'string', description: 'Commit message.' } as const;
+
 function command(
   name: string,
   description: string,
@@ -66,39 +85,133 @@ export const COMMAND_CATALOG: readonly CommandDescriptor[] = [
     required: ['projectId'],
     properties: { projectId: { type: 'string', minLength: 1 } },
   }),
+  // Sections of the open document (roadmap #6). Each edit is one text change through the editor's save path.
+  command(
+    'listSections',
+    'List the sections of the open document in document order: id, title, nesting, delimiter kind, variables.',
+    'none',
+    documentParams,
+  ),
+  command(
+    'readSection',
+    "Return one section's own body (without its sub-sections) and its place in the tree.",
+    'none',
+    onDocument(['sectionId'], { sectionId }),
+  ),
+  command(
+    'editSection',
+    "Replace one section's own body; its heading, its sub-sections and every other section stay byte-identical.",
+    'document',
+    onDocument(['sectionId', 'body'], {
+      sectionId,
+      body: { type: 'string', description: 'The new body text of the section, without its heading or tags.' },
+      message: commitMessage,
+    }),
+  ),
+  command(
+    'insertSection',
+    'Insert a new section after a section (a sibling) or as its first sub-section.',
+    'document',
+    onDocument(['sectionId', 'tag'], {
+      sectionId: { ...sectionId, description: 'The section to insert after, or under (position firstChild).' },
+      position: { type: 'string', enum: ['after', 'firstChild'], description: 'Default: after.' },
+      tag: {
+        type: 'string',
+        minLength: 1,
+        description: 'Name of the new section: letters, digits and _, starting with a letter (for example "examples").',
+      },
+      body: { type: 'string', description: 'Body text of the new section. Default: a placeholder line.' },
+      message: commitMessage,
+    }),
+  ),
+  command(
+    'moveSection',
+    'Move a section one place up or down among its siblings, with its sub-sections.',
+    'document',
+    onDocument(['sectionId', 'direction'], {
+      sectionId,
+      direction: { type: 'string', enum: ['up', 'down'] },
+    }),
+  ),
+  command(
+    'removeSection',
+    'Remove a section with its sub-sections.',
+    'document',
+    onDocument(['sectionId'], { sectionId }),
+  ),
 ];
 
 export function findCommand(name: string): CommandDescriptor | undefined {
   return COMMAND_CATALOG.find((descriptor) => descriptor.name === name);
 }
 
-/**
- * Validates params against the small JSON Schema subset the catalog uses (object, required, string,
- * minLength, additionalProperties: false). Returns an error message, or null when valid.
- */
-export function validateParams(descriptor: CommandDescriptor, params: unknown): string | null {
-  const schema = descriptor.params as {
-    required?: readonly string[];
-    properties?: Record<string, { type?: string; minLength?: number }>;
-    additionalProperties?: boolean;
-  };
-  const value = params === undefined ? {} : params;
-  if (typeof value !== 'object' || value === null || Array.isArray(value)) return 'params must be an object.';
-  const record = value as Record<string, unknown>;
-  for (const key of schema.required ?? []) {
-    if (!(key in record)) return `params.${key} is required.`;
+interface SchemaNode {
+  readonly type?: 'string' | 'integer' | 'number' | 'boolean' | 'object' | 'array';
+  readonly enum?: readonly unknown[];
+  readonly minLength?: number;
+  readonly minimum?: number;
+  readonly required?: readonly string[];
+  readonly properties?: Readonly<Record<string, SchemaNode>>;
+  readonly additionalProperties?: boolean;
+  readonly items?: SchemaNode;
+}
+
+/** Checks one value against a schema node; returns an error message, or null when valid. */
+function checkValue(schema: SchemaNode, value: unknown, at: string, command: string): string | null {
+  switch (schema.type) {
+    case 'string':
+      if (typeof value !== 'string') return `${at} must be a string.`;
+      if (schema.minLength !== undefined && value.length < schema.minLength) return `${at} must not be empty.`;
+      break;
+    case 'integer':
+    case 'number':
+      if (typeof value !== 'number' || !Number.isFinite(value)) return `${at} must be a number.`;
+      if (schema.type === 'integer' && !Number.isInteger(value)) return `${at} must be an integer.`;
+      if (schema.minimum !== undefined && value < schema.minimum) return `${at} must be at least ${schema.minimum}.`;
+      break;
+    case 'boolean':
+      if (typeof value !== 'boolean') return `${at} must be true or false.`;
+      break;
+    case 'array':
+      if (!Array.isArray(value)) return `${at} must be an array.`;
+      if (schema.items !== undefined) {
+        for (const [index, item] of value.entries()) {
+          const problem = checkValue(schema.items, item, `${at}[${index}]`, command);
+          if (problem !== null) return problem;
+        }
+      }
+      break;
+    case 'object': {
+      if (typeof value !== 'object' || value === null || Array.isArray(value)) return `${at} must be an object.`;
+      const record = value as Record<string, unknown>;
+      for (const key of schema.required ?? []) {
+        if (!(key in record)) return `${at}.${key} is required.`;
+      }
+      for (const [key, entry] of Object.entries(record)) {
+        const property = schema.properties?.[key];
+        if (property === undefined) {
+          if (schema.additionalProperties === false) return `${at}.${key} is not a parameter of ${command}.`;
+          continue;
+        }
+        const problem = checkValue(property, entry, `${at}.${key}`, command);
+        if (problem !== null) return problem;
+      }
+      break;
+    }
   }
-  for (const [key, entry] of Object.entries(record)) {
-    const property = schema.properties?.[key];
-    if (property === undefined) {
-      if (schema.additionalProperties === false) return `params.${key} is not a parameter of ${descriptor.name}.`;
-      continue;
-    }
-    if (property.type === 'string') {
-      if (typeof entry !== 'string') return `params.${key} must be a string.`;
-      if (property.minLength !== undefined && entry.length < property.minLength)
-        return `params.${key} must not be empty.`;
-    }
+  if (schema.enum !== undefined && !schema.enum.includes(value)) {
+    return `${at} must be one of: ${schema.enum.map((option) => JSON.stringify(option)).join(', ')}.`;
   }
   return null;
+}
+
+/**
+ * Validates params against the small JSON Schema subset the catalog uses (type string / integer / number /
+ * boolean / object / array, enum, minLength, minimum, required, properties, items, additionalProperties:
+ * false). Returns an error message naming the first problem, or null when valid.
+ */
+export function validateParams(descriptor: CommandDescriptor, params: unknown): string | null {
+  const value = params === undefined ? {} : params;
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) return 'params must be an object.';
+  return checkValue({ ...(descriptor.params as SchemaNode), type: 'object' }, value, 'params', descriptor.name);
 }

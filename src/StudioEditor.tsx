@@ -134,8 +134,10 @@ export function StudioEditor({
     return true;
   }
 
-  function handleRemoveSection(nodeId: string): void {
-    if (structure.removeSection(nodeId)) selection.handleNodeRemoved(nodeId);
+  function handleRemoveSection(nodeId: string): boolean {
+    const removed = structure.removeSection(nodeId);
+    if (removed) selection.handleNodeRemoved(nodeId);
+    return removed;
   }
 
   function handleCreatePrompt(): void {
@@ -199,6 +201,12 @@ export function StudioEditor({
       if (!closePanel()) return false;
       projects.switchProject(projectId);
       return true;
+    },
+    sections: {
+      loadedDocument: doc,
+      tree,
+      confirmDiscard: panels.confirmDiscard,
+      structure: { ...structure, removeSection: handleRemoveSection },
     },
   });
 

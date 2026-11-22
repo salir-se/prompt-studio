@@ -2,6 +2,7 @@ import { createServer, type Server } from 'node:http';
 import type { AddressInfo } from 'node:net';
 import {
   type BrowserState,
+  ControlCommandError,
   localControlUrl,
   PROTOCOL_VERSION,
   type WelcomeMessage,
@@ -117,6 +118,8 @@ export class FakeBrowser {
               commandId: command.commandId,
               ok: false,
               error: error instanceof Error ? error.message : String(error),
+              // Like the real tab (ws-control-channel.ts): a ControlCommandError carries its stable code.
+              ...(error instanceof ControlCommandError ? { code: error.code } : {}),
             }),
         );
     });

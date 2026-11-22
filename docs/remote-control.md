@@ -71,10 +71,19 @@ of the parameters, side effects, completion levels) and the limits. `ps capabili
 
 ## Commands and completion levels
 
-The catalog holds the nine editor commands: `listDocuments`, `openDocument`, `readDocument`, `editDocument`,
-`resetDocument`, `history`, `listConfigurations`, `createConfiguration`, `switchConfiguration`. The gateway
-rejects an unknown action (`unsupported_command`) and invalid parameters (`invalid_input`) before it routes
-anything to a tab.
+The catalog holds these commands. Every one runs in a tab, through the same functions the tab's buttons use.
+
+| Group | Commands |
+|---|---|
+| Documents | `listDocuments`, `openDocument`, `readDocument`, `editDocument`, `resetDocument`, `history` |
+| Configurations | `listConfigurations`, `createConfiguration`, `switchConfiguration` |
+| Sections of the open document | `listSections`, `readSection`, `editSection` (own body only), `insertSection` (`position`: `after` or `firstChild`), `moveSection` (`direction`: `up` or `down`), `removeSection` |
+
+Section commands take `rootId` (and `variantSymbol` for a variant) of the open document and a `sectionId` from
+`listSections`. Each section edit is one text change through the editor's save path: an undo point and one
+commit, and the graph and the outline update in the tab. The gateway rejects an unknown action
+(`unsupported_command`) and invalid parameters (`invalid_input`: a missing field, a wrong type, a value outside an
+`enum`) before it routes anything to a tab. `ps capabilities` prints each command's parameter schema.
 
 A command's result can mean different things. Phase 1 supports one completion level:
 
@@ -89,7 +98,7 @@ Messages for one command:
 controller → gateway  { type: "command", requestId, commandId, action, params, target?, waitFor?, timeoutMs? }
 gateway → controller  { type: "command.accepted", requestId, commandId, target: { browserId } }
 gateway → tab         { type: "command", commandId, action, params }
-tab → gateway         { type: "command.result", commandId, ok, data | error }
+tab → gateway         { type: "command.result", commandId, ok, data | error, code? }
 gateway → controller  { type: "command.result", requestId, commandId, state: "completed" | "failed",
                         completionLevel: "applied", target, data | error }
 ```
@@ -110,7 +119,10 @@ Error codes are stable and never renamed: `invalid_input`, `unsupported_version`
 `unsupported_completion`, `unauthorized`, `forbidden`, `ambiguous_target`, `missing_target`, `not_ready`,
 `duplicate_command`, `too_many_pending`, `payload_too_large`, `timeout`, `disconnected`, `command_failed`,
 `internal`. A tab's own failure (for example "Open the document first") is `command_failed` with the tab's
-message.
+message. A tab may report three more specific codes for its own failures: `invalid_input` (for example a section
+tag with spaces), `missing_target` (an unknown section id) and `not_ready` (the document is still loading). The
+tab sends the code in `command.result` (`code`); the gateway relays only these codes and reads any other code as
+`command_failed`, so a tab cannot report a transport failure such as `timeout`.
 
 The CLI's exit codes: `0` ok · `1` command failed · `2` usage or invalid input · `3` cannot connect (no
 Studio, bad token, no common version) · `4` no tab, unknown tab or ambiguous tab · `5` timeout or disconnect

@@ -139,6 +139,8 @@ export class SimpleHistoryProvider implements HistoryProvider {
   /** All commits in append order (the `timestampMs` tiebreak); `commitsById` indexes the same objects. */
   private commits: SimpleCommit[] = [];
   private commitsById = new Map<string, SimpleCommit>();
+  /** The tail of the commit queue (see `commit`). */
+  private writes: Promise<unknown> = Promise.resolve();
   /** Projects keyed by id in creation order — includes the `'baseline'` pseudo-project. */
   private projects = new Map<string, SimpleProject>();
 
@@ -221,7 +223,12 @@ export class SimpleHistoryProvider implements HistoryProvider {
     readonly message: string;
   }): Promise<HistoryCommitRef> {
     this.requireMutableProject(input.projectId, 'commit to');
-    const commit = await this.appendCommit(input.projectId, input.rootKey, input.text, input.message);
+    // Hashing is asynchronous, so the parent read and the append must not interleave with another commit's:
+    // two overlapping commits would share a parent and the history chain would drop one of them.
+    const append = () => this.appendCommit(input.projectId, input.rootKey, input.text, input.message);
+    const pending = this.writes.then(append, append);
+    this.writes = pending.catch(() => undefined);
+    const commit = await pending;
     return { id: commit.id, message: commit.message, timestampMs: commit.timestampMs, rootKey: commit.rootKey };
   }
 

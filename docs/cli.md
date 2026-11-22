@@ -20,7 +20,13 @@ bun run ps -- configs                                # list configurations (acti
 bun run ps -- new-config Trial                       # create a configuration
 bun run ps -- use-config trial                       # switch the active configuration
 bun run ps -- reset support-triage                   # reset the open document to its saved baseline
+bun run ps -- sections support-triage                # the open document's sections, indented by nesting
+bun run ps -- section support-triage urgency         # one section's own body
+bun run ps -- edit-section support-triage urgency --file urgency.md -m "add a security level"
+bun run ps -- call moveSection --params '{"rootId":"support-triage","sectionId":"urgency","direction":"up"}'
 ```
+
+`ps call <command> --params JSON` runs any command from `ps capabilities` with its JSON parameters.
 
 With the npm package, use `bunx @salir-se/prompt-studio-cli <command>` instead of `bun run ps --`.
 

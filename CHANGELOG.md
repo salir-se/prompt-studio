@@ -13,6 +13,12 @@ All notable changes to this project are documented here. The format follows
 
 ### Added
 
+- Section tools for agents (#6): the MCP tools `list_sections`, `read_section`, `edit_section`, `insert_section`,
+  `move_section` and `remove_section`, the matching remote-control commands, and `ps sections`, `ps section`,
+  `ps edit-section` and `ps call`. An agent changes one section at a time; every other section stays
+  byte-identical, each change is one commit, and the graph updates in the open tab.
+- A tab can report `invalid_input`, `missing_target` or `not_ready` for its own command failures; the gateway
+  relays these codes instead of `command_failed`.
 - MCP server (`prompt-studio-mcp`) in the npm package and the Docker image: AI agents such as Claude Code and
   Codex list, read and edit prompts in the open editor tab. Setup: `docs/mcp.md`.
 - Remote control over WebSocket (`/__control/ws`, phase 1; `docs/remote-control.md`). The CLI and the MCP server
@@ -22,6 +28,11 @@ All notable changes to this project are documented here. The format follows
   (`3` cannot connect, `4` no or ambiguous tab, `5` timeout).
 - Getting-started tutorial (`demos/getting-started.demo.ts`) recorded with Argo, and README screenshots.
 - Docker image `ghcr.io/salir-se/prompt-studio` for `linux/amd64` and `linux/arm64`, published with every release.
+
+### Fixed
+
+- History kept only some commits when edits arrived faster than a commit finished (for example an agent's
+  back-to-back edits): commits on both history providers now run one after another.
 
 ### Deprecated
 

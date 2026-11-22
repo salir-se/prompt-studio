@@ -20,6 +20,7 @@ import {
   readBrowserState,
   SUPPORTED_PROTOCOL_VERSIONS,
   type TargetSummary,
+  readBrowserErrorCode,
   validateParams,
 } from '@prompt-studio/control-protocol';
 import { type RawData, type WebSocket, WebSocketServer } from 'ws';
@@ -376,7 +377,7 @@ export class ControlGateway {
               state: 'failed',
               target: { browserId },
               error: controlError(
-                'command_failed',
+                readBrowserErrorCode(message.code),
                 typeof message.error === 'string' && message.error.length > 0 ? message.error : 'The command failed.',
                 { outcome: 'none' },
               ),
