@@ -14,6 +14,8 @@ All notable changes to this project are documented here. The format follows
   `--target <browserId>`, or the MCP `list_targets` tool and the `browserId` argument on every tool. New
   `ps capabilities`, `--timeout` and `--transport ws|http` flags, stable error codes, and documented exit codes
   (`3` cannot connect, `4` no or ambiguous tab, `5` timeout).
+- Getting-started tutorial (`demos/getting-started.demo.ts`) recorded with Argo, and README screenshots.
+- Docker image `ghcr.io/salir-se/prompt-studio` for `linux/amd64` and `linux/arm64`, published with every release.
 
 ### Deprecated
 
@@ -21,9 +23,10 @@ All notable changes to this project are documented here. The format follows
   `POST /__control/response`). It stays for one release; responses carry a `Deprecation` header. Use
   `ps --transport http` only with an older Studio.
 
-### Added
+### Security
 
-- Docker image `ghcr.io/salir-se/prompt-studio` for `linux/amd64` and `linux/arm64`, published with every release.
+- The installed app and the standalone server now listen on `127.0.0.1` by default. They previously bound
+  `0.0.0.0`, which let other computers on the same network open the editor and read its per-launch token.
 
 ## [1.2.0] - First public release
 

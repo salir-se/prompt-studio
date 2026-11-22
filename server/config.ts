@@ -93,7 +93,9 @@ export type StudioServerEnv = Partial<
 // for "what is the studio's own origin" whether the bridge runs under Vite or this standalone server.
 const DEFAULT_REPO_ROOT = '/repo';
 const DEFAULT_STATIC_DIR = './dist';
-const DEFAULT_HOST = '0.0.0.0';
+// Loopback only. The served page embeds the per-launch token, so any wider bind exposes the open project to
+// the network; a container that needs `0.0.0.0` must set STUDIO_HOST explicitly.
+const DEFAULT_HOST = '127.0.0.1';
 const DEFAULT_PORT = '5273';
 const DEFAULT_ALLOWED_ORIGINS = STUDIO_DEV_ORIGINS.join(',');
 // ZAI_API_KEY/ZAI_BASE_URL have no default — genuinely optional, "unset" is a real, valid state.
