@@ -170,6 +170,7 @@ export function StudioEditor({
     projects: history?.projects ?? null,
     activeProjectId: history?.activeProjectId ?? null,
     provider: history?.provider ?? null,
+    activeView: view,
     selectRoot: (rootId) => {
       const root = allRoots.find((candidate) => candidate.id === rootId);
       return root !== undefined && handleSelectRoot(root);

@@ -7,16 +7,17 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { WebStandardStreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js';
 import { expect, it, vi } from 'vitest';
 import { z } from 'zod';
+import { FakeBrowser, startStudioFixture, TEST_TOKEN } from '../../../server/control-ws/test-support';
 import { buildServer } from './index';
 import { TOOLS } from './tools';
 
 it('executes a harmless read through the real studio server', async () => {
-  const fetchImpl = vi.fn(async (_url: Parameters<typeof fetch>[0], init?: RequestInit) => {
-    expect(new Headers(init?.headers).get('x-studio-token')).toBe('nonfunctional-fixture-token');
-    expect(JSON.parse(String(init?.body))).toEqual({ command: 'listDocuments', args: {} });
-    return Response.json({ ok: true, result: [{ id: 'fixture-document', text: 'Retained document' }] });
+  // The Studio gateway is real (loopback port); only the editor tab is a scripted WebSocket client.
+  const studio = await startStudioFixture();
+  const tab = await FakeBrowser.connect(studio.url, {
+    handler: (action) => (action === 'listDocuments' ? [{ id: 'fixture-document', text: 'Retained document' }] : null),
   });
-  const server = buildServer({ port: 5273, token: 'nonfunctional-fixture-token', fetchImpl });
+  const server = buildServer({ port: studio.port, token: TEST_TOKEN });
   const client = new Client({ name: 'fixture-client', version: '1' });
   const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
   try {
@@ -27,9 +28,11 @@ it('executes a harmless read through the real studio server', async () => {
     expect(result.content).toEqual([
       { type: 'text', text: JSON.stringify([{ id: 'fixture-document', text: 'Retained document' }], null, 2) },
     ]);
-    expect(fetchImpl).toHaveBeenCalledOnce();
+    expect(tab.received).toEqual([expect.objectContaining({ action: 'listDocuments', params: {} })]);
   } finally {
     await Promise.all([client.close(), server.close()]);
+    await tab.close();
+    await studio.close();
   }
 });
 

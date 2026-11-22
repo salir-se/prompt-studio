@@ -13,11 +13,13 @@ agent works, so you can review the result and ask for the next change.
  you ──chat──▶ AI agent (Claude Code, Codex, …)
                   │  MCP tools
                   ▼
-           prompt-studio-mcp ──control channel──▶ Prompt Studio server ──▶ the open browser tab
+           prompt-studio-mcp ──WebSocket──▶ Prompt Studio server ──▶ the open browser tab
                                                                           (graph, Write, Verify, Run)
 ```
 
-- The MCP server drives the **open editor tab**: start Prompt Studio and keep one tab open on your project.
+- The MCP server drives the **open editor tab**: start Prompt Studio and keep one tab open on your project. It
+  keeps one WebSocket connection to Prompt Studio and opens it again when it drops
+  ([protocol](remote-control.md)).
 - Edits land through the editor's normal save path, so each one becomes a commit in the project history and
   can be restored.
 - The MCP server and Prompt Studio authenticate with the per-launch control token. Local clients read it from a
@@ -35,8 +37,13 @@ agent works, so you can review the result and ask for the next change.
 | `history` | Lists a document's commits, newest first. |
 | `reset_document` | Resets the open document to its baseline text (a new commit). |
 | `list_configurations`, `create_configuration`, `switch_configuration` | Manage named configurations of the project. |
+| `list_targets` | Lists the open editor tabs: `browserId`, whether each is ready, its project, open document and view. |
 
 Edits and resets apply to the **open** document, so agents call `open_document` first.
+
+Every tool except `list_targets` takes an optional `browserId`. With one tab open, leave it out. With several
+tabs open, a call without it fails and the error lists the tabs; the agent calls `list_targets` and passes the
+`browserId` of the tab you work in.
 
 ## Set up
 
@@ -97,4 +104,6 @@ claude mcp add prompt-studio -- bun /path/to/prompt-studio/packages/mcp-server/s
   evaluations through MCP are planned; see the
   [roadmap issues](https://github.com/salir-se/prompt-studio/issues?q=is%3Aissue+label%3Amcp).
 - Commands relay through the open tab. With no tab open, tools answer with an error that asks you to open one.
+- If a tab disconnects or does not answer in time, the error says the command may have run; the agent should
+  read the document before it retries an edit.
 - HTTP request bodies are limited to 2 MiB + 4 KiB, and tool arguments to 10,000 structural elements.

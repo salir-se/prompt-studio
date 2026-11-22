@@ -1,6 +1,6 @@
 // @module-tag pure
 import { describe, expect, it, vi } from 'vitest';
-import { callCommand, resolveContext } from './client';
+import { resolveContext } from './client';
 import { toolExecutor, TOOLS } from './tools';
 
 /**
@@ -11,7 +11,7 @@ import { toolExecutor, TOOLS } from './tools';
  */
 
 describe('TOOLS table', () => {
-  it('exposes the nine editor operations with unique snake_case names', () => {
+  it('exposes the nine editor operations plus list_targets with unique snake_case names', () => {
     const names = TOOLS.map((tool) => tool.name);
     expect(new Set(names).size).toBe(TOOLS.length);
     expect(names).toEqual([
@@ -24,6 +24,7 @@ describe('TOOLS table', () => {
       'switch_configuration',
       'reset_document',
       'history',
+      'list_targets',
     ]);
     for (const tool of TOOLS) {
       expect(tool.description.length).toBeGreaterThan(20); // real guidance for the LLM
@@ -72,6 +73,20 @@ describe('TOOLS table', () => {
     await expect(toolExecutor(edit, call)({ rootId: 'scout', text: 'x' })).rejects.toThrow('Open "scout" first');
   });
 
+  it('passes browserId separately and only when the input names one; list_targets takes no browserId', async () => {
+    // Given: a recording caller
+    const call = vi.fn(async () => ({ ok: true }));
+    const read = TOOLS.find((tool) => tool.name === 'read_document')!;
+    // When: a tool input names a tab
+    await toolExecutor(read, call)({ rootId: 'scout', browserId: 'tab-2' });
+    // Then: the command args exclude it and it travels as the third argument
+    expect(call).toHaveBeenLastCalledWith('readDocument', { rootId: 'scout' }, 'tab-2');
+    for (const tool of TOOLS) {
+      if (tool.name === 'list_targets') expect(tool.inputSchema.browserId).toBeUndefined();
+      else expect(tool.inputSchema.browserId?.safeParse(undefined).success, tool.name).toBe(true);
+    }
+  });
+
   it('validates edit_document inputs through the zod shape — text is required', () => {
     const edit = TOOLS.find((tool) => tool.name === 'edit_document')!;
     const parsed = edit.inputSchema.text!.safeParse(undefined);
@@ -111,51 +126,5 @@ describe('resolveContext', () => {
     } finally {
       delete process.env.PROMPT_STUDIO_CONTROL_TOKEN;
     }
-  });
-});
-
-describe('callCommand', () => {
-  it('POSTs the control command with the studio token and returns the result', async () => {
-    const fetchImpl = vi.fn<typeof fetch>(async () => Response.json({ ok: true, result: { id: 'scout' } }));
-    const result = await callCommand(
-      { port: 5273, token: 'tok', fetchImpl: fetchImpl as unknown as typeof fetch },
-      'readDocument',
-      { rootId: 'scout' },
-    );
-
-    expect(result, 'A successful control call must return the studio result, not the envelope').toEqual({
-      id: 'scout',
-    });
-    expect(fetchImpl, 'The control RPC is one POST').toHaveBeenCalledTimes(1);
-    const [url, init] = fetchImpl.mock.calls[0] as [string, RequestInit];
-    expect(url, 'The MCP client must call the studio control endpoint on 127.0.0.1').toBe(
-      'http://127.0.0.1:5273/__control/command',
-    );
-    expect(init.method).toBe('POST');
-    expect(new Headers(init.headers).get('x-studio-token'), 'The control token must travel in x-studio-token').toBe(
-      'tok',
-    );
-    expect(JSON.parse(String(init.body)), 'The body is the command name plus its args').toEqual({
-      command: 'readDocument',
-      args: { rootId: 'scout' },
-    });
-  });
-
-  it('throws a readable error when the studio cannot be reached', async () => {
-    const fetchImpl = vi.fn(async () => {
-      throw new Error('ECONNREFUSED');
-    });
-    await expect(
-      callCommand({ port: 5273, token: 'tok', fetchImpl: fetchImpl as unknown as typeof fetch }, 'listDocuments'),
-      'A network failure must name the port instead of leaking the raw stack',
-    ).rejects.toThrow('Cannot reach the studio on port 5273');
-  });
-
-  it('throws the studio error when the command is rejected', async () => {
-    const fetchImpl = vi.fn(async () => Response.json({ ok: false, error: 'Open "scout" first' }, { status: 400 }));
-    await expect(
-      callCommand({ port: 5273, token: 'tok', fetchImpl: fetchImpl as unknown as typeof fetch }, 'editDocument'),
-      'A rejected command must surface the studio error text',
-    ).rejects.toThrow('Open "scout" first');
   });
 });

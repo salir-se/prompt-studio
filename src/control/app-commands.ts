@@ -9,6 +9,7 @@
  * message — a CLI/MCP user sees "open the document first", never a stack.
  */
 
+import type { BrowserState } from '@prompt-studio/control-protocol';
 import type { CatalogRoot } from '../catalog/root-catalog';
 import type { HistoryProvider, ProjectRef } from '../vcs/history-provider';
 import { providerKeyFor } from '../vcs/provider-keys';
@@ -22,6 +23,8 @@ export interface AppCommandSurface {
   readonly projects: readonly ProjectRef[] | null;
   readonly activeProjectId: string | null;
   readonly provider: HistoryProvider | null;
+  /** The active editor view (`write`, `graph`), reported to remote-control clients as tab state. */
+  readonly activeView?: string;
   selectRoot(rootId: string): boolean;
   selectVariant(rootId: string, variantSymbol: string): boolean;
   /** Replaces the loaded document's text through the app's transactional write path. */
@@ -48,6 +51,21 @@ function readDocumentArgs(args: unknown): { rootId: string; variantSymbol?: stri
     throw new Error('variantSymbol must be a string.');
   }
   return { rootId, variantSymbol };
+}
+
+/**
+ * The tab state remote-control clients see in `targets` (docs/remote-control.md). The tab is ready once its
+ * history has booted: from then on every command can run.
+ */
+export function browserStateOf(surface: AppCommandSurface): BrowserState {
+  const project = surface.projects?.find((candidate) => candidate.id === surface.activeProjectId);
+  return {
+    ready: surface.projects !== null && surface.provider !== null,
+    projectId: surface.activeProjectId,
+    projectName: project?.name ?? null,
+    documentId: surface.loadedDocument?.rootId ?? null,
+    view: surface.loadedDocument === null ? null : (surface.activeView ?? null),
+  };
 }
 
 /** Builds the command map the control channel resolves against. */

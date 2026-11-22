@@ -11,10 +11,24 @@ import { z } from 'zod';
  * server-side (app-commands.ts), so a malformed tool argument still fails safely there.
  */
 
-/** Injectable command caller so tests drive the table without a studio. */
-export type CommandCaller = (command: string, args?: unknown) => Promise<unknown>;
+/**
+ * Injectable command caller so tests drive the table without a studio. `browserId` is passed only when the
+ * tool input names one.
+ */
+export type CommandCaller = (command: string, args?: unknown, browserId?: string) => Promise<unknown>;
+
+/** The pseudo-command of `list_targets`: answered by the Studio gateway, not by a tab. */
+export const LIST_TARGETS_COMMAND = 'targets.list';
+
+const browserIdArg = {
+  browserId: z
+    .string()
+    .optional()
+    .describe('The editor tab to drive (from list_targets). Needed only when more than one tab is open.'),
+};
 
 const documentArgs = {
+  ...browserIdArg,
   rootId: z.string().describe('Document id — discover with list_documents'),
   variantSymbol: z
     .string()
@@ -38,7 +52,7 @@ export const TOOLS: readonly ToolDefinition[] = [
     title: 'List documents',
     description:
       'Every editable document in the studio catalog (agent prompts, fragments, skills) with its loadability.',
-    inputSchema: {},
+    inputSchema: { ...browserIdArg },
     command: 'listDocuments',
     toArgs: () => ({}),
   },
@@ -76,7 +90,7 @@ export const TOOLS: readonly ToolDefinition[] = [
     name: 'list_configurations',
     title: 'List configurations',
     description: 'The prompt configurations (projects) with the active one marked.',
-    inputSchema: {},
+    inputSchema: { ...browserIdArg },
     command: 'listConfigurations',
     toArgs: () => ({}),
   },
@@ -84,7 +98,7 @@ export const TOOLS: readonly ToolDefinition[] = [
     name: 'create_configuration',
     title: 'Create a configuration',
     description: 'Create a new configuration, optionally seeded from a reference baseline (e.g. repository).',
-    inputSchema: { name: z.string(), fromBaseline: z.string().optional() },
+    inputSchema: { ...browserIdArg, name: z.string(), fromBaseline: z.string().optional() },
     command: 'createConfiguration',
     toArgs: (input) => input,
   },
@@ -93,7 +107,7 @@ export const TOOLS: readonly ToolDefinition[] = [
     title: 'Switch configuration',
     description:
       "Make another configuration active (projectId from list_configurations). Switching replaces the working text with that configuration's heads.",
-    inputSchema: { projectId: z.string() },
+    inputSchema: { ...browserIdArg, projectId: z.string() },
     command: 'switchConfiguration',
     toArgs: (input) => input,
   },
@@ -114,6 +128,15 @@ export const TOOLS: readonly ToolDefinition[] = [
     command: 'history',
     toArgs: (input) => input,
   },
+  {
+    name: 'list_targets',
+    title: 'List editor tabs',
+    description:
+      'The open Prompt Studio editor tabs: browserId, whether each is ready, its project, open document and view. Use a browserId on other tools when several tabs are open.',
+    inputSchema: {},
+    command: LIST_TARGETS_COMMAND,
+    toArgs: () => ({}),
+  },
 ];
 
 /**
@@ -126,7 +149,10 @@ export function toolExecutor(
   call: CommandCaller,
 ): (input: Record<string, unknown>) => Promise<{ content: Array<{ type: 'text'; text: string }> }> {
   return async (input) => {
-    const result = await call(tool.command, tool.toArgs(input));
+    const { browserId, ...rest } = input;
+    const args = tool.toArgs(rest);
+    const result =
+      typeof browserId === 'string' ? await call(tool.command, args, browserId) : await call(tool.command, args);
     const text =
       tool.command === 'readDocument' && typeof (result as { text?: unknown })?.text === 'string'
         ? (result as { text: string }).text

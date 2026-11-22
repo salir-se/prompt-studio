@@ -1,6 +1,7 @@
 import { readFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
+import { type ControlError, controlError, ERROR_CODES, type ErrorCode } from '@prompt-studio/control-protocol';
 
 /**
  * The CLI's control-API client (task #19; ADR-236): the CLI is deliberately a THIN RPC FORMATTER
@@ -15,6 +16,13 @@ import path from 'node:path';
  */
 
 const STUDIO_TOKEN_HEADER = 'x-studio-token';
+
+/** A failed call with the stable error the CLI prints and maps to its exit code. */
+export class ControlCallError extends Error {
+  constructor(readonly error: ControlError) {
+    super(error.message);
+  }
+}
 
 /** Extracted so tests can pin the file-name contract shared with `server/control-routes.ts`. */
 export function controlTokenFilePath(port: number): string {
@@ -34,8 +42,12 @@ export async function discoverToken(
   try {
     return (await readFileImpl(controlTokenFilePath(port))).trim();
   } catch {
-    throw new Error(
-      `No control token for port ${port} (${controlTokenFilePath(port)}). Is the studio running on that port? Or pass --token.`,
+    throw new ControlCallError(
+      controlError(
+        'disconnected',
+        `No control token for port ${port} (${controlTokenFilePath(port)}). Is the studio running on that port? Or pass --token.`,
+        { outcome: 'none' },
+      ),
     );
   }
 }
@@ -45,9 +57,18 @@ export interface ControlCallOptions {
   readonly token: string;
   /** Injectable for tests; defaults to the global fetch. */
   readonly fetchImpl?: typeof fetch;
+  /** The tab to drive, when the Studio has WebSocket tabs. */
+  readonly browserId?: string;
 }
 
-/** One RPC round trip: POST the command, return the editor's result, throw the readable error. */
+function isErrorCode(value: unknown): value is ErrorCode {
+  return typeof value === 'string' && (ERROR_CODES as readonly string[]).includes(value);
+}
+
+/**
+ * One RPC round trip over the DEPRECATED HTTP relay (`--transport http`): POST the command, return the
+ * editor's result, throw a ControlCallError with a readable message.
+ */
 export async function callCommand(options: ControlCallOptions, command: string, args?: unknown): Promise<unknown> {
   const doFetch = options.fetchImpl ?? fetch;
   let response: Response;
@@ -55,17 +76,40 @@ export async function callCommand(options: ControlCallOptions, command: string, 
     response = await doFetch(`http://127.0.0.1:${options.port}/__control/command`, {
       method: 'POST',
       headers: { 'content-type': 'application/json', [STUDIO_TOKEN_HEADER]: options.token },
-      body: JSON.stringify({ command, args: args ?? {} }),
+      body: JSON.stringify({
+        command,
+        args: args ?? {},
+        ...(options.browserId === undefined ? {} : { browserId: options.browserId }),
+      }),
     });
   } catch {
-    throw new Error(`Cannot reach the studio on port ${options.port} — is it running (bun run dev)?`);
+    throw new ControlCallError(
+      controlError('disconnected', `Cannot reach the studio on port ${options.port} — is it running (bun run dev)?`, {
+        outcome: 'none',
+      }),
+    );
   }
-  const body = (await response.json().catch(() => null)) as { ok?: boolean; result?: unknown; error?: string } | null;
+  const body = (await response.json().catch(() => null)) as {
+    ok?: boolean;
+    result?: unknown;
+    error?: string;
+    errorCode?: unknown;
+  } | null;
   if (body === null) {
-    throw new Error(`The studio answered HTTP ${response.status} with an unreadable body.`);
+    throw new ControlCallError(
+      controlError('internal', `The studio answered HTTP ${response.status} with an unreadable body.`),
+    );
   }
   if (response.status !== 200 || body.ok !== true) {
-    throw new Error(body.error ?? `The studio rejected "${command}" (HTTP ${response.status}).`);
+    const message = body.error ?? `The studio rejected "${command}" (HTTP ${response.status}).`;
+    const code: ErrorCode = isErrorCode(body.errorCode)
+      ? body.errorCode
+      : response.status === 503
+        ? 'not_ready'
+        : response.status === 401
+          ? 'unauthorized'
+          : 'command_failed';
+    throw new ControlCallError(controlError(code, message));
   }
   return body.result;
 }

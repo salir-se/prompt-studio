@@ -1,6 +1,9 @@
-import type { IncomingMessage, ServerResponse } from 'node:http';
+import type { IncomingMessage, Server, ServerResponse } from 'node:http';
+import type { Duplex } from 'node:stream';
+import type { ErrorCode } from '@prompt-studio/control-protocol';
 import { STUDIO_TOKEN_HEADER, validateOrigin, validateToken } from '../src/bridge/fs-bridge';
 import type { ControlCommandRequest, ControlHub, ControlResponse } from './control-hub';
+import { ControlGateway, type ControlGatewayOptions } from './control-ws/gateway';
 
 /**
  * The control channel's HTTP surface (ADR-236; tasks #18–#20): three routes, shared verbatim by
@@ -18,7 +21,14 @@ import type { ControlCommandRequest, ControlHub, ControlResponse } from './contr
  * server, Origin check (SSE), per-boot token (query for SSE, header for POSTs), and no
  * paths/PII in error bodies. A command with no connected tab is a 503 with the actionable
  * "open the studio" message, not a silent hang.
+ *
+ * DEPRECATED (docs/remote-control.md): the WebSocket gateway at `/__control/ws` replaces these routes. They stay
+ * for one release. `POST /__control/command` routes through the gateway whenever an editor tab is connected
+ * over WebSocket, and through the SSE hub otherwise; its responses carry `Deprecation` and `Link` headers.
  */
+
+/** Where the deprecation `Link` header points. */
+export const REMOTE_CONTROL_DOCS_URL = 'https://github.com/salir-se/prompt-studio/blob/main/docs/remote-control.md';
 
 /** Shared gate constants — same validators as the fs bridge (timing-safe token compare). */
 
@@ -29,6 +39,8 @@ export interface ControlRoutesOptions {
   readonly port: number;
   /** Allowed origins for the SSE stream (the studio's own dev/standalone origins). */
   readonly allowedOrigins: readonly string[];
+  /** Overrides for the WebSocket gateway (tests shorten timeouts or capture its log). */
+  readonly gateway?: Omit<ControlGatewayOptions, 'token' | 'allowedOrigins'>;
 }
 
 function firstHeaderValue(value: string | string[] | undefined): string | undefined {
@@ -63,8 +75,36 @@ function readBody(req: IncomingMessage, maxBytes = 2 * 1024 * 1024): Promise<str
 export interface ControlRoutes {
   /** True when the request was a `/__control/*` route (handled, response ended). */
   handle(req: IncomingMessage, res: ServerResponse): Promise<boolean>;
+  /** The WebSocket gateway (`/__control/ws`). */
+  readonly gateway: ControlGateway;
+  /** Handles a WebSocket upgrade for `/__control/ws`; false (socket untouched) for other paths. */
+  handleUpgrade(req: IncomingMessage, socket: Duplex, head: Buffer): boolean;
+  /** Listens for `/__control/ws` upgrades on `server`; other paths are left to other listeners. */
+  attachUpgrade(server: Server, options?: { readonly rejectOtherPaths?: boolean }): void;
   /** Rejects pending commands and forgets the token file — call on shutdown. */
   dispose(): Promise<void>;
+}
+
+/** HTTP status of a gateway error on the deprecated `POST /__control/command`. */
+function statusForError(code: ErrorCode | undefined): number {
+  switch (code) {
+    case 'invalid_input':
+    case 'unsupported_command':
+    case 'unsupported_completion':
+      return 400;
+    case 'missing_target':
+      return 404;
+    case 'ambiguous_target':
+    case 'duplicate_command':
+      return 409;
+    case 'not_ready':
+    case 'disconnected':
+      return 503;
+    case 'timeout':
+      return 504;
+    default:
+      return 500;
+  }
 }
 
 /** Extracted for tests: the token file name is a stable contract with the CLI/MCP clients. */
@@ -81,6 +121,11 @@ export async function createControlRoutes(
 ): Promise<ControlRoutes> {
   const tokenPath = `${options.tokenDir}/${controlTokenFileName(options.port)}`;
   await writeTokenFile(tokenPath, token);
+  const gateway = new ControlGateway({ ...options.gateway, token, allowedOrigins: options.allowedOrigins });
+  const deprecate = (res: ServerResponse): void => {
+    res.setHeader('deprecation', 'true');
+    res.setHeader('link', `<${REMOTE_CONTROL_DOCS_URL}>; rel="deprecation"`);
+  };
 
   async function handle(req: IncomingMessage, res: ServerResponse): Promise<boolean> {
     const url = new URL(req.url ?? '/', 'http://localhost');
@@ -100,6 +145,7 @@ export async function createControlRoutes(
         return true;
       }
 
+      deprecate(res);
       res.writeHead(200, {
         'content-type': 'text/event-stream',
         'cache-control': 'no-cache',
@@ -131,8 +177,9 @@ export async function createControlRoutes(
         sendJson(res, 401, { ok: false, error: 'Unauthorized.' });
         return true;
       }
+      if (url.pathname === '/__control/command') deprecate(res);
       // Fail fast BEFORE reading the body: a command relay with no tab is dead on arrival.
-      if (url.pathname === '/__control/command' && !hub.hasClient()) {
+      if (url.pathname === '/__control/command' && !hub.hasClient() && !gateway.hasBrowsers()) {
         sendJson(res, 503, {
           ok: false,
           error: 'No editor tab is connected — open the prompt studio in a browser first.',
@@ -154,9 +201,25 @@ export async function createControlRoutes(
         return true;
       }
 
-      const { command, args } = (body ?? {}) as ControlCommandRequest;
+      const { command, args, browserId } = (body ?? {}) as ControlCommandRequest & { browserId?: unknown };
       if (typeof command !== 'string' || command.length === 0) {
         sendJson(res, 400, { ok: false, error: 'A command name is required.' });
+        return true;
+      }
+      // A tab connected over WebSocket wins: the gateway applies the same target rules as for controllers.
+      if (gateway.hasBrowsers()) {
+        const result = await gateway.dispatch(command, args, typeof browserId === 'string' ? { browserId } : undefined);
+        if (result.state === 'completed') {
+          sendJson(res, 200, { ok: true, result: result.data ?? null, target: result.target });
+        } else {
+          const error = result.error;
+          sendJson(res, statusForError(error?.code), {
+            ok: false,
+            error: error?.message ?? 'Editor command failed.',
+            errorCode: error?.code,
+            ...(error?.candidates === undefined ? {} : { candidates: error.candidates }),
+          });
+        }
         return true;
       }
       try {
@@ -174,8 +237,12 @@ export async function createControlRoutes(
 
   return {
     handle,
+    gateway,
+    handleUpgrade: (req, socket, head) => gateway.handleUpgrade(req, socket, head),
+    attachUpgrade: (server, upgradeOptions) => gateway.attach(server, upgradeOptions),
     async dispose() {
       hub.dispose();
+      await gateway.close();
       await removeTokenFile(tokenPath).catch(() => {});
     },
   };
