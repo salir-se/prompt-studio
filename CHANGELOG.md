@@ -38,6 +38,8 @@ All notable changes to this project are documented here. The format follows
 - Course "Prompt Studio: zero to hero": a written guide (`docs/guides/zero-to-hero.md`), the finished example
   project `examples/order-status` with its empty starting point, and scripts for six episodes (`demos/course`).
 - Docker image `ghcr.io/salir-se/prompt-studio` for `linux/amd64` and `linux/arm64`, published with every release.
+- The Docker image is also published to Docker Hub as `salirse/prompt-studio` when the release has Docker Hub
+  credentials.
 
 ### Fixed
 

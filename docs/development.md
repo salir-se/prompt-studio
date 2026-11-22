@@ -56,8 +56,12 @@ skip or a fallback do not count as that test.
 1. Update `CHANGELOG.md` and the version in `package.json`.
 2. Push a tag `vX.Y.Z`. The `release` workflow runs the checks, compiles the four binaries, writes
    `latest.json` with SHA-256 checksums, creates the GitHub Release, pushes the multi-arch Docker image to
-   `ghcr.io/salir-se/prompt-studio` (`X.Y.Z` and `latest`), and publishes the npm package with `bun publish` (when
+   `ghcr.io/salir-se/prompt-studio` (`X.Y.Z` and `latest`) and, when the `DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN`
+   secrets are set, the same image to Docker Hub as `salirse/prompt-studio`, and publishes the npm package with `bun publish` (when
    the `NPM_TOKEN` secret is set; `bun publish` cannot produce npm provenance, so releases carry none).
+
+Docker Hub secrets: `DOCKERHUB_USERNAME` is `salirse`; `DOCKERHUB_TOKEN` is a Docker Hub personal access token
+with **Read & Write** scope. Docker Hub creates the public repository `salirse/prompt-studio` on the first push.
 
 Build and try the image locally:
 
@@ -108,6 +112,7 @@ command works as usual.
 | Variable | Purpose |
 |---|---|
 | `NPM_PUBLISH_TOKEN` | npmjs.com token of the `salir-se` account (admin of the `salir` npm organization) for publishing `@salir/prompt-studio`. |
+| `DOCKERHUB_USERNAME`, `DOCKERHUB_TOKEN` | Docker Hub account `salirse` and its personal access token (Read & Write) for pushing `salirse/prompt-studio`. The release workflow reads the same values from GitHub secrets of the same names. |
 
 To use the secrets, a maintainer:
 

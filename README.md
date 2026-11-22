@@ -170,7 +170,9 @@ docker run --rm -p 127.0.0.1:5273:5273 \
 Open http://127.0.0.1:5273. The mounted folder opens as the project. The `prompt-studio-data` volume keeps saved
 projects, versions, and run history between restarts. Always publish the port on `127.0.0.1` as shown: the page
 contains the per-launch access token, so a port published on every interface exposes your project to the network.
-Images are published for `linux/amd64` and `linux/arm64`, tagged with the release version and `latest`.
+Images are published for `linux/amd64` and `linux/arm64`, tagged with the release version and `latest`. From
+release 1.2.0 the same image is also on Docker Hub: replace `ghcr.io/salir-se/prompt-studio` with
+`salirse/prompt-studio`.
 
 ## Work in the editor
 
