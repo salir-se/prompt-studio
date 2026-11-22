@@ -16,6 +16,7 @@ COPY . .
 RUN bun run build \
  && bun build server/main.ts --target=bun --format=esm --outfile /out/server/main.js \
  && bun build cli/main.ts --target=bun --format=esm --outfile /out/cli/main.js \
+ && bun build packages/mcp-server/src/index.ts --target=bun --format=esm --outfile /out/mcp/main.js \
  && cp -r dist /out/dist \
  && mkdir -p /manifest \
  && cp src/manifest/default.manifest.json /manifest/manifest.json \
@@ -42,7 +43,8 @@ LABEL org.opencontainers.image.title="Prompt Studio" \
       org.opencontainers.image.documentation="https://github.com/salir-se/prompt-studio#run-with-docker" \
       org.opencontainers.image.licenses="Apache-2.0"
 
-EXPOSE 5273
+# 5274: the optional MCP server (`docker exec … bun mcp/main.js`, or a second container with CMD overridden).
+EXPOSE 5273 5274
 USER bun
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD wget -qO- http://127.0.0.1:5273/health > /dev/null || exit 1

@@ -1,11 +1,26 @@
 # Prompt Studio
 
-Prompt Studio is a local editor for prompt projects. You write prompts as Markdown, keep shared variables and
-tool definitions next to them, test them against real models, compare versions, and send changes to GitHub as
-a pull request. It runs on your computer and opens in your browser; your prompts never leave your machine
-unless you choose to publish them.
+**See what your AI agent is doing to your prompts.** Prompt Studio is a visual prompt builder for AI-assisted
+prompt engineering. Your coding agent (Claude Code, Codex, or any MCP client) composes prompts through Prompt
+Studio's MCP server; Prompt Studio shows the result live in your browser: the prompt's sections as a graph,
+its variables, its input and output contracts, and its checks. You review the structure and logic, run and
+test the prompt, and tell the agent what to verify or change next.
 
-## What you can do
+It runs on your computer, keeps every prompt in Git, and shares nothing until you open a pull request.
+Free and open source under Apache-2.0.
+
+## How it works
+
+1. **Your agent writes.** Connect the MCP server to Claude Code or Codex ([setup](docs/mcp.md)) and ask for a
+   prompt. Every edit is saved as a commit you can restore.
+2. **You see the structure.** Explorer and Graph show each section, how they connect, and which variables they
+   use. Design shows each section's input, workflow and output contract.
+3. **You verify.** Automatic checks and optional AI review flag unknown placeholders, broken output contracts and
+   missing sections. Run the prompt against your own model and keep test suites that catch regressions.
+4. **You steer.** Propose additional checks, workflows, or architecture patterns to the agent, edit by hand when
+   that is faster, and publish a branch and pull request when the prompt is ready.
+
+## What you can do in the editor
 
 - **Write and structure prompts.** Edit `prompts/<id>.md` files in a Markdown composer with placeholder
   completion. Explorer shows each prompt's section tree; you can add, reorder, and edit sections.
@@ -66,6 +81,9 @@ npx @salir-se/prompt-studio            # or: bunx @salir-se/prompt-studio
 Flags: `--repo <dir>` (default: current directory), `--port <n>` (default `5273`), `--host <addr>` (default
 `127.0.0.1`), `--manifest <file>`.
 
+The package also installs `prompt-studio-cli` (terminal control of the open editor) and `prompt-studio-mcp` (the
+MCP server for your agent, see [docs/mcp.md](docs/mcp.md)).
+
 ### Run with Docker
 
 ```bash
@@ -95,6 +113,7 @@ A project is any folder, usually a Git repository, that contains `prompts/<id>.m
 
 ## Documentation
 
+- [Use with your AI agent (MCP)](docs/mcp.md) — connect Claude Code, Codex, or any MCP client.
 - [User guide](docs/user-guide.md) — projects, writing, runs, evaluations, verification, GitHub, files and recovery.
 - [Command-line control](docs/cli.md) — drive the open editor from a terminal.
 - [Screen map](docs/navigation-map.md) — every screen and dialog, and the component that owns it.

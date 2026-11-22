@@ -59,15 +59,17 @@ describe('buildPackageJson', () => {
     expect(manifest.license).toBe('Apache-2.0');
   });
 
-  it('declares both bins and ships exactly the runtime file tree', () => {
+  it('declares the three bins and ships exactly the runtime file tree', () => {
     expect(manifest.bin).toEqual({
       'prompt-studio': 'bin/prompt-studio.js',
       'prompt-studio-cli': 'bin/prompt-studio-cli.js',
+      'prompt-studio-mcp': 'bin/prompt-studio-mcp.js',
     });
     expect(manifest.files).toEqual([
       'bin',
       'cli',
       'dist',
+      'mcp',
       'server',
       'studio-manifest',
       'README.md',
