@@ -23,7 +23,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           ref: ${{ inputs.ref || github.sha }}
       - uses: oven-sh/setup-bun@v2
@@ -51,7 +51,7 @@ jobs:
     env:
       CI: 'true'
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           ref: ${{ inputs.ref || github.sha }}
       - uses: oven-sh/setup-bun@v2
@@ -64,7 +64,24 @@ jobs:
       - name: Manifest override journey
         run: PW_STUDIO_PORT=5291 PW_STUDIO_MANIFEST="$PWD/tests/e2e/fixtures/third-party.manifest.json" bun run test:e2e -- manifest-override
       - if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: playwright-results
           path: .output/test-results
+
+  docker:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.ref || github.sha }}
+      - name: Build the image
+        run: docker build -t prompt-studio:ci .
+      - name: Start it and check health on loopback
+        run: |
+          docker run -d --name studio -p 127.0.0.1:5273:5273 -v "$PWD/examples/starter":/repo prompt-studio:ci
+          for i in $(seq 1 30); do curl -fsS http://127.0.0.1:5273/health && break; sleep 1; done
+          curl -fsS http://127.0.0.1:5273/health
+          curl -fsS http://127.0.0.1:5273/ | grep -q 'studio-token'
+          docker logs studio
