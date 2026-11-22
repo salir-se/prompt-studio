@@ -4,6 +4,7 @@ import { AdoptPromptDialog } from './adoption/AdoptPromptDialog';
 import type { PromptAdoption } from './adoption/use-prompt-adoption';
 import { StudioPanelFocus } from './components/StudioPanelFocus';
 import { NewPromptDialog, type NewPromptInput } from './design/NewPromptDialog';
+import type { EditorEvent } from './control/editor-resource';
 import { ExportDialog } from './export/ExportDialog';
 import { buildExportPreviewPaths, selectExportVariables } from './export/export-flow';
 import { HelpPanel } from './help/HelpPanel';
@@ -51,6 +52,7 @@ interface StudioOverlaysProps {
   onCreatePrompt: (input: NewPromptInput) => Promise<void>;
   onCancelCreate: () => void;
   onSaveDesign: (design: PromptDesign) => Promise<void>;
+  onEditorEvent: (action: EditorEvent['action']) => void;
   projectSection: ProjectSection;
   onProjectSectionChange: (section: ProjectSection) => void;
 }
@@ -76,6 +78,7 @@ export function StudioOverlays({
   onCreatePrompt,
   onCancelCreate,
   onSaveDesign,
+  onEditorEvent,
   projectSection,
   onProjectSectionChange,
 }: StudioOverlaysProps) {
@@ -109,6 +112,7 @@ export function StudioOverlays({
           onClose={closePanel}
           section={projectSection}
           onSectionChange={onProjectSectionChange}
+          onSaveVersion={() => onEditorEvent('version.saved')}
         />
       )}
       {activePanel === 'help' && (
@@ -201,7 +205,14 @@ export function StudioOverlays({
           onDirtyChange={panels.onDirtyChange}
           onRecheck={editor.runVerification}
           onSaveText={doc ? verification.saveText : undefined}
-          onSaveDesign={selectedRoot.design ? verification.saveDesign : undefined}
+          onSaveDesign={
+            selectedRoot.design
+              ? async (design) => {
+                  await verification.saveDesign(design);
+                  onEditorEvent('check.saved');
+                }
+              : undefined
+          }
           proposals={verificationWorkspace.proposals.proposals.filter(
             (proposal) => proposal.rootId === selectedRoot.id,
           )}

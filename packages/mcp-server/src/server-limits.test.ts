@@ -113,6 +113,16 @@ it('preserves an edit whose actual encoded control command is just below the dow
   expect(toolRequestBytes).toBeLessThan(HTTP_BYTES);
 });
 
+it('discovers and reads editor resources over stateless HTTP', async () => {
+  const { resources } = await client.listResources();
+  const document = resources.find(({ name }) => name === 'document');
+  expect(document).toBeDefined();
+  expect(client.getServerCapabilities()?.resources?.subscribe).toBeUndefined();
+  const { contents } = await client.readResource({ uri: document!.uri });
+  expect(contents).toEqual([{ uri: document!.uri, mimeType: 'application/json', text: '{"saved":true}' }]);
+  expect(tab.received.at(-1)).toMatchObject({ action: 'readEditorResource', params: { resource: 'document' } });
+});
+
 it('rejects an oversized authorized HTTP tool request before dispatching to Studio', async () => {
   const body = JSON.stringify({
     jsonrpc: '2.0',

@@ -1,4 +1,4 @@
-import type { CommandDescriptor } from './protocol.ts';
+import { type CommandDescriptor, EDITOR_RESOURCES } from './protocol.ts';
 
 /**
  * The commands a Studio editor tab executes (spec RC-05). The gateway advertises this list in `welcome`,
@@ -66,6 +66,11 @@ function command(
 
 export const COMMAND_CATALOG: readonly CommandDescriptor[] = [
   command('listDocuments', 'List every prompt and skill in the open project.', 'none', none),
+  command('readEditorResource', 'Read one live editor resource from the target tab.', 'none', {
+    ...none,
+    required: ['resource'],
+    properties: { resource: { type: 'string', enum: EDITOR_RESOURCES } },
+  }),
   command('openDocument', 'Open a document in the editor tab.', 'view', documentParams),
   command('readDocument', "Return a document's text (the working copy when it is open).", 'none', documentParams),
   command('editDocument', "Replace the open document's text and save it as a commit.", 'document', {

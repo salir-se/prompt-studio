@@ -10,6 +10,7 @@ import {
   CONTROL_WS_PATH,
   controlError,
   DEFAULT_COMMAND_TIMEOUT_MS,
+  EDITOR_RESOURCES,
   findCommand,
   HELLO_TIMEOUT_MS,
   isValidClientId,
@@ -69,6 +70,7 @@ interface Connection {
   readonly pending: Set<string>;
   /** Browser only. */
   browserId?: string;
+  editorEvents?: boolean;
 }
 
 interface BrowserEntry {
@@ -311,6 +313,7 @@ export class ControlGateway {
       maxTimeoutMs: MAX_COMMAND_TIMEOUT_MS,
     };
     if (message.role === 'controller') {
+      connection.editorEvents = message.editorEvents === true;
       this.send(connection, {
         type: 'welcome',
         protocolVersion: version,
@@ -342,6 +345,18 @@ export class ControlGateway {
 
   private onBrowserMessage(connection: Connection, message: Record<string, unknown>): void {
     const browserId = connection.browserId as string;
+    if (message.type === 'editor.changed') {
+      const changed = message.resources;
+      if (this.browsers.get(browserId)?.connection !== connection || !Array.isArray(changed)) return;
+      const resources = EDITOR_RESOURCES.filter((resource) => changed.includes(resource));
+      if (resources.length === 0) return;
+      for (const peer of this.connections) {
+        if (peer.editorEvents && peer.socket.bufferedAmount < this.maxFrameBytes) {
+          this.send(peer, { type: 'editor.changed', browserId, resources });
+        }
+      }
+      return;
+    }
     if (message.type === 'state.update') {
       const state = readBrowserState(message.state);
       const entry = this.browsers.get(browserId);

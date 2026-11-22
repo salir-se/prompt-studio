@@ -74,6 +74,7 @@ describe('validateParams', () => {
     expect(names).toEqual(
       expect.arrayContaining([
         'listDocuments',
+        'readEditorResource',
         'editDocument',
         'listSections',
         'readSection',
@@ -97,7 +98,7 @@ describe('validateParams', () => {
         'compareVersions',
       ]),
     );
-    expect(names).toHaveLength(29);
+    expect(names).toHaveLength(30);
     for (const command of COMMAND_CATALOG) {
       expect(command).toMatchObject({
         executor: 'browser',

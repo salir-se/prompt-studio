@@ -24,6 +24,7 @@ Reply with JSON.
 `;
 
 export interface McpAgent {
+  readonly client: Client;
   /** Calls one MCP tool; resolves its text, or rejects with the tool's error text. */
   call(name: string, args?: Record<string, unknown>): Promise<string>;
   /** Calls one MCP tool and parses its JSON text. */
@@ -111,7 +112,7 @@ export const test = base.extend<{ agent: McpAgent }, { builtAssets: string }>({
           timeout: 20_000,
         })
         .toBe(true);
-      await use({ call, json: async (name, args) => JSON.parse(await call(name, args)) });
+      await use({ client: connected, call, json: async (name, args) => JSON.parse(await call(name, args)) });
     } finally {
       await client?.close().catch(() => {});
       if (server.exitCode === null) {

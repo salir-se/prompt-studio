@@ -17,6 +17,7 @@ import {
   ControlClient,
   type ControlClientOptions,
   type ControlError,
+  type EditorChangedMessage,
   localControlUrl,
   type TargetSummary,
 } from '@prompt-studio/control-protocol';
@@ -62,6 +63,7 @@ export interface StudioCaller {
   /** Runs one command in a tab; resolves its data or throws a readable Error. */
   call(action: string, params: unknown, browserId?: string): Promise<unknown>;
   listTargets(): Promise<readonly TargetSummary[]>;
+  watchEditor?(listener: (event: EditorChangedMessage) => void): Promise<() => void>;
   close(): void;
 }
 
@@ -88,6 +90,8 @@ function describeError(error: ControlError): string {
 
 export class StudioConnection implements StudioCaller {
   private client: Promise<ControlClient> | null = null;
+  private readonly watchers = new Set<(event: EditorChangedMessage) => void>();
+  private reconnectTimer: ReturnType<typeof setTimeout> | undefined;
 
   constructor(
     private readonly context: CallContext,
@@ -111,10 +115,31 @@ export class StudioConnection implements StudioCaller {
     return client.listTargets();
   }
 
+  async watchEditor(listener: (event: EditorChangedMessage) => void): Promise<() => void> {
+    const client = await this.open();
+    if (!client.commands.some((command) => command.name === 'readEditorResource')) {
+      throw new Error('Update Prompt Studio to read and subscribe to editor resources.');
+    }
+    this.watchers.add(listener);
+    return () => this.watchers.delete(listener);
+  }
+
   close(): void {
+    clearTimeout(this.reconnectTimer);
+    this.reconnectTimer = undefined;
+    this.watchers.clear();
     const pending = this.client;
     this.client = null;
     void pending?.then((client) => client.close()).catch(() => {});
+  }
+
+  private reconnectEditorWatchers(): void {
+    if (this.watchers.size === 0 || this.reconnectTimer !== undefined) return;
+    this.reconnectTimer = setTimeout(() => {
+      this.reconnectTimer = undefined;
+      if (this.watchers.size) void this.open().catch(() => this.reconnectEditorWatchers());
+    }, 1000);
+    this.reconnectTimer.unref();
   }
 
   /** The shared connection, opened on first use and again after it closed. */
@@ -124,10 +149,15 @@ export class StudioConnection implements StudioCaller {
         const connecting = this.connect({
           url: localControlUrl(this.context.port),
           token: this.context.token,
+          editorEvents: true,
           ...(this.context.connectTimeoutMs === undefined ? {} : { connectTimeoutMs: this.context.connectTimeoutMs }),
         }).then((client) => {
+          client.onEditorChanged((event) => {
+            for (const watcher of this.watchers) watcher(event);
+          });
           client.onClose(() => {
             if (this.client === connecting) this.client = null;
+            this.reconnectEditorWatchers();
           });
           return client;
         });
